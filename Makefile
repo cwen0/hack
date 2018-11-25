@@ -9,36 +9,21 @@ GOFILTER := grep -vE 'vendor|render.Delims|bindata_assetfs|testutil|\.pb\.go'
 GOCHECKER := $(GOFILTER) | awk '{ print } END { if (NR > 0) { exit 1 } }'
 GOLINT := go list ./... | grep -vE 'vendor' | xargs -L1 -I {} golint {} 2>&1 | $(GOCHECKER)
 
-LDFLAGS += -X "github.com/pingcap/schrodinger/util.BuildTS=$(shell date -u '+%Y-%m-%d %I:%M:%S')"
-LDFLAGS += -X "github.com/pingcap/schrodinger/util.BuildHash=$(shell git rev-parse HEAD)"
-
-GOBUILD=$(GO) build -ldflags '$(LDFLAGS)'
 GOBUILD_CGO=$(GO_CGO) build -ldflags '$(LDFLAGS)'
 
 GOMOD := -mod=vendor
 
 default: all
 
-all: server client
+all: server client proxy
 
 server:
-        $(GOBUILD_CGO) $(GOMOD) -o bin/server server/*.go
+		$(GOBUILD_CGO) $(GOMOD) -o bin/server server/*.go
 client:
 		$(GOBUILD_CGO) $(GOMOD) -o bin/client client/*.go
-
-check:
-        GO111MODULE=on go get github.com/golang/lint/golint
-
-        @echo "vet"
-
-        @go vet -all -shadow ./...
-
-        @echo "golint"
-        @ $(GOLINT)
-        @echo "gofmt"
-        @gofmt -s -l -w $(FILES) 2>&1 | $(GOCHECKER)
-
+proxy:
+		$(GOBUILD_CGO) $(GOMOD) -o bin/proxy proxy/*.go
 clean:
-        @rm -rf bin/*
+		@rm -rf bin/*
 
-.PHONY: all client server
+.PHONY: all client server proxy
