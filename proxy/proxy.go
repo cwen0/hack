@@ -1,22 +1,22 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net"
-	"context"
 
 	"google.golang.org/grpc"
 )
 
 var (
-	upstream            string
+	upstream   string
 	listenAddr string
 )
 
 func init() {
 	flag.StringVar(&upstream, "upstream", "127.0.0.1:11000", "upstream port")
-	flag.StringVar(&listenAddr,"listen-addr", ":10000", "serve port")
+	flag.StringVar(&listenAddr, "listen-addr", ":10000", "serve port")
 }
 
 func main() {
@@ -27,12 +27,14 @@ func main() {
 	}
 	ctx := context.Background()
 
-	proxyHandler, err := NewProxyHandler(ctx, nil, upstream)
+	cfg := make(map[string]string)
+	cfg["/helloworld.Greeter/SayHello"] = "rand(5)->delay(1000)|rand(1)->timeout()"
+	proxyHandler, err := NewProxyHandler(ctx, cfg, upstream)
 	if err != nil {
 		log.Fatalf("failed to setup proxy: %v", err)
 	}
 	s := grpc.NewServer(grpc.CustomCodec(Codec()),
-	grpc.UnknownServiceHandler(proxyHandler.StreamHandler()))
+		grpc.UnknownServiceHandler(proxyHandler.StreamHandler()))
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

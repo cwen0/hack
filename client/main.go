@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"google.golang.org/grpc"
 	pb "github.com/zhouqiang-cl/hack/proto"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -29,7 +29,7 @@ func main() {
 	if len(os.Args) > 1 {
 		name = os.Args[1]
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
 	if err != nil {

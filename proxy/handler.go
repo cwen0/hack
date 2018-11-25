@@ -1,12 +1,15 @@
 package main
 
 import (
-	"log"
-	"io"
 	"context"
+	"io"
+	"log"
+	"strconv"
+	"time"
+
+	"github.com/juju/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"github.com/juju/errors"
 )
 
 var (
@@ -18,17 +21,17 @@ var (
 
 // ProxyHandler is proxy handler
 type ProxyHandler struct {
-	ctx context.Context
-	cfg map[string]string
-	upstream string
+	ctx          context.Context
+	cfg          map[string]string
+	upstream     string
 	upstreamConn *grpc.ClientConn
 }
 
 // NewProxyHandler creates new proxy handler
-func NewProxyHandler(ctx context.Context, cfg map[string]string, upstream string) (*ProxyHandler,error) {
+func NewProxyHandler(ctx context.Context, cfg map[string]string, upstream string) (*ProxyHandler, error) {
 	streamer := &ProxyHandler{
-		ctx: ctx,
-		cfg:cfg,
+		ctx:      ctx,
+		cfg:      cfg,
 		upstream: upstream,
 	}
 
@@ -46,7 +49,7 @@ func (p *ProxyHandler) StreamHandler() grpc.StreamHandler {
 	return p.handler
 }
 
-func (p *ProxyHandler)handler(srv interface{}, serverStream grpc.ServerStream) error {
+func (p *ProxyHandler) handler(srv interface{}, serverStream grpc.ServerStream) error {
 	fullMethodName, ok := grpc.MethodFromServerStream(serverStream)
 	if !ok {
 		return grpc.Errorf(codes.Internal, "lowLevelServerStream not exists in context")
@@ -125,17 +128,63 @@ func (p *ProxyHandler) forwardClientToServer(src grpc.ClientStream, dst grpc.Ser
 func (p *ProxyHandler) forwardServerToClient(src grpc.ServerStream, dst grpc.ClientStream) chan error {
 	ret := make(chan error, 1)
 	go func() {
-		f := &frame{}
 		for i := 0; ; i++ {
-			if err := src.RecvMsg(f); err != nil {
-				ret <- err // this can be io.EOF which is happy case
-				break
-			}
-			if err := dst.SendMsg(f); err != nil {
+			err := p.handlerRequest(src, dst)
+			if err != nil {
+				log.Printf("got error %s", errors.ErrorStack(err))
 				ret <- err
 				break
 			}
 		}
 	}()
 	return ret
+}
+
+// handlerRequest try to apply config
+func (p *ProxyHandler) handlerRequest(src grpc.ServerStream, dst grpc.ClientStream) error {
+	methodName, ok := grpc.MethodFromServerStream(src)
+	if !ok {
+		return grpc.Errorf(codes.Internal, "lowLevelServerStream not exists in context")
+	}
+
+	rule, ok := p.cfg[methodName]
+	if !ok {
+		return p.processNormal(src, dst)
+	}
+
+	return p.processWithRule(src, dst, rule)
+}
+
+func (p *ProxyHandler) processNormal(src grpc.ServerStream, dst grpc.ClientStream) error {
+	f := &frame{}
+	err := src.RecvMsg(f)
+	if err != nil {
+		// can not use error.Trace for eof
+		return err
+	}
+
+	return dst.SendMsg(f)
+}
+
+func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStream, ruleStr string) error {
+	f := &frame{}
+	err := src.RecvMsg(f)
+	if err != nil {
+		// can not use error.Trace for eof
+		return err
+	}
+
+	rules := getRulesFromRuleStr(ruleStr)
+	for _, rule := range rules {
+		if rule.Action == "delay" {
+			millisecond, err := strconv.ParseInt(rule.ActionArgs, 10, 64)
+			if err != nil {
+				return errors.Trace(err)
+			}
+			log.Printf("sleep %d ms", millisecond)
+			time.Sleep(time.Duration(millisecond) * time.Millisecond)
+		}
+	}
+
+	return dst.SendMsg(f)
 }
