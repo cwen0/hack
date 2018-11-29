@@ -22,17 +22,17 @@ var (
 // ProxyHandler is proxy handler
 type ProxyHandler struct {
 	ctx          context.Context
-	cfg          map[string]string
+	cfgManager   *ConfigManager
 	upstream     string
 	upstreamConn *grpc.ClientConn
 }
 
 // NewProxyHandler creates new proxy handler
-func NewProxyHandler(ctx context.Context, cfg map[string]string, upstream string) (*ProxyHandler, error) {
+func NewProxyHandler(ctx context.Context, upstream string, cfgManager *ConfigManager) (*ProxyHandler, error) {
 	streamer := &ProxyHandler{
-		ctx:      ctx,
-		cfg:      cfg,
-		upstream: upstream,
+		ctx:        ctx,
+		cfgManager: cfgManager,
+		upstream:   upstream,
 	}
 
 	var err error
@@ -146,7 +146,7 @@ func (p *ProxyHandler) handlerRequest(src grpc.ServerStream, dst grpc.ClientStre
 		return grpc.Errorf(codes.Internal, "lowLevelServerStream not exists in context")
 	}
 
-	rule, ok := p.cfg[methodName]
+	rule, ok := p.cfgManager.GetCfg(methodName)
 	if !ok {
 		return p.processNormal(src, dst)
 	}
