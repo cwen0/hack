@@ -28,4 +28,4 @@ bank:
 clean:
 		@rm -rf bin/*
 
-.PHONY: all client server proxy
+.PHONY: all client server proxy bank
