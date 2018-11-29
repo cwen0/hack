@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"io"
-	"log"
 	"strconv"
 	"time"
 
+	"github.com/ngaut/log"
 	"github.com/juju/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -54,7 +54,7 @@ func (p *ProxyHandler) handler(srv interface{}, serverStream grpc.ServerStream) 
 	if !ok {
 		return grpc.Errorf(codes.Internal, "lowLevelServerStream not exists in context")
 	}
-	log.Printf("full name %s", fullMethodName)
+	log.Infof("full name %s", fullMethodName)
 	clientStream, err := grpc.NewClientStream(p.ctx, clientStreamDescForProxying, p.upstreamConn, fullMethodName)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (p *ProxyHandler) forwardServerToClient(src grpc.ServerStream, dst grpc.Cli
 		for i := 0; ; i++ {
 			err := p.handlerRequest(src, dst)
 			if err != nil {
-				log.Printf("got error %s", errors.ErrorStack(err))
+				log.Infof("got error %s", errors.ErrorStack(err))
 				ret <- err
 				break
 			}
@@ -181,7 +181,7 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 			if err != nil {
 				return errors.Trace(err)
 			}
-			log.Printf("sleep %d ms", millisecond)
+			log.Infof("sleep %d ms", millisecond)
 			time.Sleep(time.Duration(millisecond) * time.Millisecond)
 		}
 	}
