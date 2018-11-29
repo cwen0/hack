@@ -160,10 +160,16 @@ func (p *ProxyHandler) processNormal(src grpc.ServerStream, dst grpc.ClientStrea
 	err := src.RecvMsg(f)
 	if err != nil {
 		// can not use error.Trace for eof
+		log.Debugf("recv message failed %+v", errors.Trace(err))
 		return err
 	}
 
-	return dst.SendMsg(f)
+	err = dst.SendMsg(f)
+	if err != nil {
+		log.Debugf("send message failed %+v", errors.Trace(err))
+		return err
+	}
+	return nil
 }
 
 func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStream, ruleStr string) error {
