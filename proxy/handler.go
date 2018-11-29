@@ -131,7 +131,6 @@ func (p *ProxyHandler) forwardServerToClient(src grpc.ServerStream, dst grpc.Cli
 		for i := 0; ; i++ {
 			err := p.handlerRequest(src, dst)
 			if err != nil {
-				log.Infof("got error %s", errors.ErrorStack(err))
 				ret <- err
 				break
 			}
@@ -160,13 +159,12 @@ func (p *ProxyHandler) processNormal(src grpc.ServerStream, dst grpc.ClientStrea
 	err := src.RecvMsg(f)
 	if err != nil {
 		// can not use error.Trace for eof
-		log.Debugf("recv message failed %+v", errors.Trace(err))
 		return err
 	}
+	//log.Debugf("data is %+v", f)
 
 	err = dst.SendMsg(f)
 	if err != nil {
-		log.Debugf("send message failed %+v", errors.Trace(err))
 		return err
 	}
 	return nil
@@ -177,7 +175,6 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 	err := src.RecvMsg(f)
 	if err != nil {
 		// can not use error.Trace for eof
-		log.Debugf("recv message failed %+v", errors.Trace(err))
 		return err
 	}
 
@@ -195,7 +192,6 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 
 	err = dst.SendMsg(f)
 	if err != nil {
-		log.Debugf("send message failed %+v", errors.Trace(err))
 		return err
 	}
 	return nil

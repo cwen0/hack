@@ -28,7 +28,12 @@ func main() {
 	ctx := context.Background()
 
 	cfg := make(map[string]string)
-	cfg["/helloworld.Greeter/SayHello"] = "rand(5)->delay(1000)|rand(1)->timeout()"
+	cfg["/tikvpb.Tikv/Coprocessor"] = "rand(5)->delay(100)|rand(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvBatchGet"] = "rand(5)->delay(10)|rand(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvCommit"] = "rand(5)->delay(10)|rand(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvGet"] = "rand(5)->delay(10)|rand(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvPrewrite"] = "rand(5)->delay(10)|rand(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvScanLock"] = "rand(5)->delay(10)|rand(1)->timeout()"
 	proxyHandler, err := NewProxyHandler(ctx, cfg, upstream)
 	if err != nil {
 		log.Fatalf("failed to setup proxy: %v", err)
