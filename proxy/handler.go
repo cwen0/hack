@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ngaut/log"
 	"github.com/juju/errors"
+	"github.com/ngaut/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
@@ -171,6 +171,7 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 	err := src.RecvMsg(f)
 	if err != nil {
 		// can not use error.Trace for eof
+		log.Debugf("recv message failed %+v", errors.Trace(err))
 		return err
 	}
 
@@ -186,5 +187,10 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 		}
 	}
 
-	return dst.SendMsg(f)
+	err = dst.SendMsg(f)
+	if err != nil {
+		log.Debugf("send message failed %+v", errors.Trace(err))
+		return err
+	}
+	return nil
 }
