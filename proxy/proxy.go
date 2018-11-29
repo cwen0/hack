@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
 	"net"
 
+	"github.com/ngaut/log"
 	"google.golang.org/grpc"
 )
 
@@ -18,7 +18,7 @@ var (
 func init() {
 	flag.StringVar(&upstream, "upstream", "127.0.0.1:20161", "upstream port")
 	flag.StringVar(&listenAddr, "listen-addr", ":20160", "serve port")
-	flag.StringVar(&configAddr, "config-listen-addr", ":100080", "config listen addr")
+	flag.StringVar(&configAddr, "config-listen-addr", ":10008", "config listen addr")
 }
 
 func main() {

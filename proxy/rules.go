@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strings"
 )
 
@@ -36,7 +35,6 @@ func stringToRule(ruleStr string) *Rule {
 		} else {
 			arr := strings.SplitN(item, "(", 2)
 			rule.Action = arr[0]
-			log.Print(arr[1])
 			rule.ActionArgs = strings.Split(arr[1], ")")[0]
 		}
 	}
