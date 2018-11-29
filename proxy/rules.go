@@ -1,14 +1,17 @@
 package main
 
 import (
+	"strconv"
 	"strings"
+
+	"github.com/ngaut/log"
 )
 
 // Rule is rule
 // pct(5)->delay(1000)|pct(1)->timeout will convert to
 type Rule struct {
 	Side       string
-	Pct        string
+	Pct        int
 	Action     string
 	ActionArgs string
 }
@@ -25,13 +28,21 @@ func getRulesFromRuleStr(rulesStr string) []*Rule {
 }
 
 func stringToRule(ruleStr string) *Rule {
-	rule := &Rule{}
+	rule := &Rule{
+		Pct: 100,
+	}
 	items := strings.Split(ruleStr, "->")
 	for _, item := range items {
 		if strings.HasPrefix(item, "pct(") {
 			arr := strings.SplitN(item, "(", 2)
 			pct := strings.Split(arr[1], ")")[0]
-			rule.Pct = pct
+			p, err := strconv.Atoi(pct)
+			if err != nil {
+				log.Errorf("config pct failed, set to 0")
+				p = 0
+			}
+			log.Debugf("pct is %d", p)
+			rule.Pct = p
 		} else {
 			arr := strings.SplitN(item, "(", 2)
 			rule.Action = arr[0]

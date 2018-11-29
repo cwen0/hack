@@ -52,11 +52,11 @@ func main() {
 
 func defaultCfg() map[string]string {
 	cfg := make(map[string]string)
-	cfg["/tikvpb.Tikv/Coprocessor"] = "rand(5)->delay(100)|rand(1)->timeout()"
-	cfg["/tikvpb.Tikv/KvBatchGet"] = "rand(5)->delay(10)|rand(1)->timeout()"
-	cfg["/tikvpb.Tikv/KvCommit"] = "rand(5)->delay(10)|rand(1)->timeout()"
-	cfg["/tikvpb.Tikv/KvGet"] = "rand(5)->delay(10)|rand(1)->timeout()"
-	cfg["/tikvpb.Tikv/KvPrewrite"] = "rand(5)->delay(10)|rand(1)->timeout()"
-	cfg["/tikvpb.Tikv/KvScanLock"] = "rand(5)->delay(10)|rand(1)->timeout()"
+	cfg["/tikvpb.Tikv/Coprocessor"] = "pct(5)->delay(100)|pct(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvBatchGet"] = "pct(5)->delay(10)|pct(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvCommit"] = "pct(5)->delay(10)|pct(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvGet"] = "pct(5)->delay(10)|pct(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvPrewrite"] = "pct(5)->delay(10)|pct(1)->timeout()"
+	cfg["/tikvpb.Tikv/KvScanLock"] = "pct(5)->delay(10)|pct(1)->timeout()"
 	return cfg
 }

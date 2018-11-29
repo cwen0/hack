@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"io"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -11,6 +12,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 var (
 	clientStreamDescForProxying = &grpc.StreamDesc{
@@ -180,13 +185,21 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 
 	rules := getRulesFromRuleStr(ruleStr)
 	for _, rule := range rules {
-		if rule.Action == "delay" {
+		n := rand.Intn(100)
+		if n > rule.Pct {
+			continue
+		}
+		switch rule.Action {
+		case "delay":
 			millisecond, err := strconv.ParseInt(rule.ActionArgs, 10, 64)
 			if err != nil {
 				return errors.Trace(err)
 			}
 			log.Infof("sleep %d ms", millisecond)
 			time.Sleep(time.Duration(millisecond) * time.Millisecond)
+		case "timeout":
+			log.Infof("sleep 10 minutes for timeout")
+			time.Sleep(10 * time.Minute)
 		}
 	}
 
