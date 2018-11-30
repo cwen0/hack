@@ -15,7 +15,7 @@ GOMOD := -mod=vendor
 
 default: all
 
-all: server client proxy bank
+all: server client proxy bank ctrl
 
 server:
 		$(GOBUILD_CGO) $(GOMOD) -o bin/server server/*.go
@@ -25,7 +25,10 @@ proxy:
 		$(GOBUILD_CGO) $(GOMOD) -o bin/proxy proxy/*.go
 bank:
 	$(GOBUILD_CGO) $(GOMOD) -o bin/bank bank/*.go
+ctrl:
+	$(GOBUILD_CGO) $(GOMOD) -o bin/ctrl ctrl/*.go
+
 clean:
 		@rm -rf bin/*
 
-.PHONY: all client server proxy bank
+.PHONY: all client server proxy bank ctrl
