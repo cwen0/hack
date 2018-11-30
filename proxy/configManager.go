@@ -26,7 +26,7 @@ type ConfigManager struct {
 // NetworkConfig is network config
 type NetworkConfig struct {
 	Ingress  []string `json:"ingress"`
-	Outgress []string `json:"outgress"`
+	Egress []string `json:"egress"`
 }
 
 // FailpointConfig is failpoint config
