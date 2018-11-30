@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/ngaut/log"
+	"github.com/zhouqiang-cl/hack/config"
 	"google.golang.org/grpc"
 )
 
@@ -26,7 +27,7 @@ func main() {
 
 	cfg := defaultCfg()
 
-	cfgManager := NewConfigManager(configAddr, cfg)
+	cfgManager := config.NewManager(configAddr, cfg)
 	go func() {
 		err := cfgManager.Run()
 		if err != nil {

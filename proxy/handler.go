@@ -9,6 +9,8 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/ngaut/log"
+	"github.com/zhouqiang-cl/hack/config"
+	"github.com/zhouqiang-cl/hack/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
@@ -27,13 +29,13 @@ var (
 // ProxyHandler is proxy handler
 type ProxyHandler struct {
 	ctx          context.Context
-	cfgManager   *ConfigManager
+	cfgManager   *config.Manager
 	upstream     string
 	upstreamConn *grpc.ClientConn
 }
 
 // NewProxyHandler creates new proxy handler
-func NewProxyHandler(ctx context.Context, upstream string, cfgManager *ConfigManager) (*ProxyHandler, error) {
+func NewProxyHandler(ctx context.Context, upstream string, cfgManager *config.Manager) (*ProxyHandler, error) {
 	streamer := &ProxyHandler{
 		ctx:        ctx,
 		cfgManager: cfgManager,
@@ -211,7 +213,7 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 }
 
 // TODO: set filter
-func (p *ProxyHandler) processNetworkPartition(src grpc.ServerStream, dst grpc.ClientStream, cfg *NetworkConfig) error {
+func (p *ProxyHandler) processNetworkPartition(src grpc.ServerStream, dst grpc.ClientStream, cfg *types.NetworkConfig) error {
 
 	return nil
 }
