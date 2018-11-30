@@ -11,7 +11,7 @@ import (
 	"github.com/ngaut/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 )
 
 func init() {
@@ -102,27 +102,31 @@ func (p *ProxyHandler) handler(srv interface{}, serverStream grpc.ServerStream) 
 func (p *ProxyHandler) forwardClientToServer(src grpc.ClientStream, dst grpc.ServerStream) chan error {
 	ret := make(chan error, 1)
 	go func() {
-		f := &frame{}
+		// f := &frame{}
 		for i := 0; ; i++ {
-			if err := src.RecvMsg(f); err != nil {
-				ret <- err // this can be io.EOF which is happy case
-				break
-			}
-			if i == 0 {
-				// This is a bit of a hack, but client to server headers are only readable after first client msg is
-				// received but must be written to server stream before the first msg is flushed.
-				// This is the only place to do it nicely.
-				md, err := src.Header()
-				if err != nil {
-					ret <- err
-					break
-				}
-				if err := dst.SendHeader(md); err != nil {
-					ret <- err
-					break
-				}
-			}
-			if err := dst.SendMsg(f); err != nil {
+			//if err := src.RecvMsg(f); err != nil {
+			//	ret <- err // this can be io.EOF which is happy case
+			//	break
+			//}
+			//if i == 0 {
+			//	// This is a bit of a hack, but client to server headers are only readable after first client msg is
+			//	// received but must be written to server stream before the first msg is flushed.
+			//	// This is the only place to do it nicely.
+			//	md, err := src.Header()
+			//	if err != nil {
+			//		ret <- err
+			//		break
+			//	}
+			//	if err := dst.SendHeader(md); err != nil {
+			//		ret <- err
+			//		break
+			//	}
+			//}
+			//if err := dst.SendMsg(f); err != nil {
+			//	ret <- err
+			//	break
+			//}
+			if err := p.handleOutRequest(i, src, dst); err != nil {
 				ret <- err
 				break
 			}
@@ -135,8 +139,7 @@ func (p *ProxyHandler) forwardServerToClient(src grpc.ServerStream, dst grpc.Cli
 	ret := make(chan error, 1)
 	go func() {
 		for i := 0; ; i++ {
-			err := p.handlerRequest(src, dst)
-			if err != nil {
+			if err := p.handleInRequest(src, dst); err != nil {
 				ret <- err
 				break
 			}
@@ -145,19 +148,52 @@ func (p *ProxyHandler) forwardServerToClient(src grpc.ServerStream, dst grpc.Cli
 	return ret
 }
 
-// handlerRequest try to apply config
-func (p *ProxyHandler) handlerRequest(src grpc.ServerStream, dst grpc.ClientStream) error {
-	methodName, ok := grpc.MethodFromServerStream(src)
+// handleRequest try to apply config
+func (p *ProxyHandler) handleInRequest(src grpc.ServerStream, dst grpc.ClientStream) error {
+	_, ok := grpc.MethodFromServerStream(src)
 	if !ok {
 		return grpc.Errorf(codes.Internal, "lowLevelServerStream not exists in context")
 	}
 
-	rule, ok := p.cfgManager.GetFailpointCfg(methodName)
-	if !ok {
-		return p.processNormal(src, dst)
+	//rule, ok := p.cfgManager.GetFailpointCfg(methodName)
+	//if !ok {
+	//	return p.processNormal(src, dst)
+	//}
+
+	//return p.processWithRule(src, dst, rule)
+	if err := p.processIngressNetwork(src, dst, nil); err != nil {
+		return err
 	}
 
-	return p.processWithRule(src, dst, rule)
+	return p.processNormal(src, dst)
+}
+
+func (p *ProxyHandler) handleOutRequest(index int, src grpc.ClientStream, dst grpc.ServerStream) error {
+	if err := p.processEgressNetwork(src, dst, nil); err != nil {
+		return err
+	}
+
+	f := &frame{}
+	if err := src.RecvMsg(f); err != nil {
+		return err
+	}
+	if index == 0 {
+		// This is a bit of a hack, but client to server headers are only readable after first client msg is
+		// received but must be written to server stream before the first msg is flushed.
+		// This is the only place to do it nicely.
+		md, err := src.Header()
+		if err != nil {
+			return err
+		}
+		if err := dst.SendHeader(md); err != nil {
+			return err
+		}
+	}
+	if err := dst.SendMsg(f); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *ProxyHandler) processNormal(src grpc.ServerStream, dst grpc.ClientStream) error {
@@ -211,12 +247,27 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 	return nil
 }
 
-// TODO: set filter
-func (p *ProxyHandler) processNetworkPartition(src grpc.ServerStream, dst grpc.ClientStream, cfg *NetworkConfig) error {
-	md, ok := metadata.FromIncomingContext(src.Context())
+func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.ClientStream, cfg *NetworkConfig) error {
+	pe, ok := peer.FromContext(src.Context())
 	if !ok {
-		return grpc.Errorf(codes.Unimplemented, "Unknown method")
+		log.Error("get peer failed")
 	}
-	log.Infof("%v", md)
+
+	log.Infof("Ingress perr addr: %s", pe.Addr)
+	// md, ok := metadata.FromIncomingContext(src.Context())
+	// if !ok {
+	// 	return grpc.Errorf(codes.Unimplemented, "Unknown method")
+	// }
+	// log.Infof("%v", md)
+	return nil
+}
+
+func (p *ProxyHandler) processEgressNetwork(src grpc.ClientStream, dst grpc.ServerStream, cfg *NetworkConfig) error {
+	pe, ok := peer.FromContext(src.Context())
+	if !ok {
+		log.Error("get peer failed")
+	}
+
+	log.Infof("Egress perr addr: %s", pe.Addr)
 	return nil
 }
