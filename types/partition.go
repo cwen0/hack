@@ -12,12 +12,11 @@ const (
 
 // Partition defines the config for network partition
 type Partition struct {
-	Groups    []Group       `json:"groups"`
-	Kind      PartitionKind `json:"kind"`
+	Groups []Group       `json:"groups"`
+	Kind   PartitionKind `json:"kind"`
 }
 
 // Group define the a set of nodes for partition
 type Group struct {
 	Hosts []string `json:"hosts"`
 }
-
