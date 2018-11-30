@@ -5,6 +5,6 @@ import (
 )
 
 // GetProxyPartitionConfig gets proxy
-func GetProxyPartitionConfig(node *types.Topological) map[string]*types.NetworkConfig {
+func GetProxyPartitionConfig(node *types.Topological,kind types.PartitionKind) map[string]*types.NetworkConfig {
 	return nil
 }
