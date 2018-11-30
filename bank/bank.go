@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"math/rand"
@@ -8,7 +9,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"context"
 
 	"github.com/juju/errors"
 	"github.com/ngaut/log"

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"time"
 	"context"
 	"database/sql"
+	"time"
 
-	"github.com/ngaut/log"
-	"github.com/juju/errors"
 	"github.com/go-sql-driver/mysql"
+	"github.com/juju/errors"
+	"github.com/ngaut/log"
 )
 
 // MustExec must execute sql or fatal
