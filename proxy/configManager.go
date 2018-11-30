@@ -17,13 +17,20 @@ const APIPrefix = "/config"
 // ConfigManager is the manager config.
 type ConfigManager struct {
 	sync.RWMutex
-	addr string
-	Cfg  map[string]string
-	s    *http.Server
+	addr         string
+	FailpointCfg map[string]string
+	NetworkCfg   *NetworkConfig
+	s            *http.Server
 }
 
-// Config is config
-type Config struct {
+// NetworkConfig is network config
+type NetworkConfig struct {
+	Ingress  []string `json:"ingress"`
+	Outgress []string `json:"outgress"`
+}
+
+// FailpointConfig is failpoint config
+type FailpointConfig struct {
 	Path  string `json:"path"`
 	Value string `json:"value"`
 }
@@ -31,8 +38,8 @@ type Config struct {
 // NewConfigManager creates the node with given address
 func NewConfigManager(addr string, cfg map[string]string) *ConfigManager {
 	n := &ConfigManager{
-		addr: addr,
-		Cfg:  cfg,
+		addr:         addr,
+		FailpointCfg: cfg,
 	}
 
 	return n
@@ -56,33 +63,61 @@ func (c *ConfigManager) Close() {
 	}
 }
 
-// GetCfg gets cfg
-func (c *ConfigManager) GetCfg(name string) (string, bool) {
+// GetFailpointCfg gets failpoint cfg
+func (c *ConfigManager) GetFailpointCfg(name string) (string, bool) {
 	c.RLock()
 	defer c.RUnlock()
-	rule, ok := c.Cfg[name]
+	rule, ok := c.FailpointCfg[name]
 	return rule, ok
 }
 
-// SetCfg sets cfg
-func (c *ConfigManager) SetCfg(name string, rule string) {
+// SetFailpointCfg sets cfg
+func (c *ConfigManager) SetFailpointCfg(name string, rule string) {
 	c.Lock()
 	defer c.Unlock()
-	c.Cfg[name] = rule
+	c.FailpointCfg[name] = rule
 }
 
-// RemoveCfg removes cfg
-func (c *ConfigManager) RemoveCfg(name string) {
+// RemoveFailpointCfg removes failpoint cfg
+func (c *ConfigManager) RemoveFailpointCfg(name string) {
 	c.Lock()
 	defer c.Unlock()
-	delete(c.Cfg, name)
+	delete(c.FailpointCfg, name)
 }
 
-// ListCfg lists cfg
-func (c *ConfigManager) ListCfg() map[string]string {
+// ListFailpointCfg lists failpoint cfg
+func (c *ConfigManager) ListFailpointCfg() map[string]string {
 	c.RLock()
 	defer c.RUnlock()
-	return c.Cfg
+	return c.FailpointCfg
+}
+
+// CleanFailpointCfg cleans failpoint cfg
+func (c *ConfigManager) CleanFailpointCfg() {
+	c.Lock()
+	defer c.Unlock()
+	c.FailpointCfg = nil
+}
+
+// SetPartitionCfg sets network config
+func (c *ConfigManager) SetPartitionCfg(cfg *NetworkConfig) {
+	c.Lock()
+	defer c.Unlock()
+	c.NetworkCfg = cfg
+}
+
+// GetPartitionCfg gets network config
+func (c *ConfigManager) GetPartitionCfg() *NetworkConfig {
+	c.RLock()
+	defer c.RUnlock()
+	return c.NetworkCfg
+}
+
+// RemovePartitionCfg removes partition config
+func (c *ConfigManager) RemovePartitionCfg() {
+	c.Lock()
+	defer c.Unlock()
+	c.NetworkCfg = nil
 }
 
 func (c *ConfigManager) createHandler() http.Handler {
@@ -108,9 +143,17 @@ func (c *ConfigManager) createRouter() *mux.Router {
 	router := mux.NewRouter().PathPrefix(APIPrefix).Subrouter()
 
 	processHandler := newProcessHandler(c, rd)
-	router.HandleFunc("/add", processHandler.AddConfig).Methods("POST")
-	router.HandleFunc("/remove", processHandler.RemoveConfig).Methods("POST")
-	router.HandleFunc("/", processHandler.ListConfig).Methods("GET")
+
+	// failpoint
+	router.HandleFunc("/failpoint/add", processHandler.AddFailpointConfig).Methods("POST")
+	router.HandleFunc("/failpoint/remove", processHandler.RemoveFailpointConfig).Methods("POST")
+	router.HandleFunc("/failpoint/clean", processHandler.CleanFailpointConfig).Methods("POST")
+	router.HandleFunc("/failpoint", processHandler.ListFailpointConfig).Methods("GET")
+
+	// network partition
+	router.HandleFunc("/network/partition/add", processHandler.AddPartitionConfig).Methods("POST")
+	router.HandleFunc("/network/partition/remove", processHandler.RemovePartitionConfig).Methods("POST")
+	router.HandleFunc("/network/partition", processHandler.GetPartitionConfig).Methods("GET")
 
 	return router
 }

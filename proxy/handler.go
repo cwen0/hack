@@ -151,7 +151,7 @@ func (p *ProxyHandler) handlerRequest(src grpc.ServerStream, dst grpc.ClientStre
 		return grpc.Errorf(codes.Internal, "lowLevelServerStream not exists in context")
 	}
 
-	rule, ok := p.cfgManager.GetCfg(methodName)
+	rule, ok := p.cfgManager.GetFailpointCfg(methodName)
 	if !ok {
 		return p.processNormal(src, dst)
 	}
@@ -186,7 +186,7 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 	rules := getRulesFromRuleStr(ruleStr)
 	for _, rule := range rules {
 		n := rand.Intn(100)
-		if n > rule.Pct {
+		if n >= rule.Pct {
 			continue
 		}
 		switch rule.Action {
