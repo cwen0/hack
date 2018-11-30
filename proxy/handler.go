@@ -210,7 +210,8 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 	return nil
 }
 
-func (p *ProxyHandler) processNetworkPartition(src grpc.ServerStream, dst grpc.ClientStream, cfg NetworkConfig) error {
+// TODO: set filter
+func (p *ProxyHandler) processNetworkPartition(src grpc.ServerStream, dst grpc.ClientStream, cfg *NetworkConfig) error {
 
 	return nil
 }
