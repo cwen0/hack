@@ -11,6 +11,7 @@ import (
 	"github.com/ngaut/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 )
 
 func init() {
@@ -212,6 +213,10 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 
 // TODO: set filter
 func (p *ProxyHandler) processNetworkPartition(src grpc.ServerStream, dst grpc.ClientStream, cfg *NetworkConfig) error {
-
+	md, ok := metadata.FromIncomingContext(src.Context())
+	if !ok {
+		return grpc.Errorf(codes.Unimplemented, "Unknown method")
+	}
+	log.Infof("%v", md)
 	return nil
 }
