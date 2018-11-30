@@ -77,7 +77,13 @@ func (p *processHandler) RemovePartitionConfig(w http.ResponseWriter, r *http.Re
 
 // GetPartitionConfig gets partition
 func (p *processHandler) GetPartitionConfig(w http.ResponseWriter, r *http.Request) {
-	p.rd.JSON(w, http.StatusOK, p.c.GetPartitionCfg())
+	cfg, ok := p.c.GetPartitionCfg()
+	if ok {
+		p.rd.JSON(w, http.StatusOK, cfg)
+		return
+	}
+
+	p.rd.JSON(w, http.StatusOK, nil)
 }
 
 func readJSON(r io.ReadCloser, data interface{}) error {

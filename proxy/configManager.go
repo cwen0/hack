@@ -107,10 +107,14 @@ func (c *ConfigManager) SetPartitionCfg(cfg *NetworkConfig) {
 }
 
 // GetPartitionCfg gets network config
-func (c *ConfigManager) GetPartitionCfg() *NetworkConfig {
+func (c *ConfigManager) GetPartitionCfg() (*NetworkConfig, bool) {
 	c.RLock()
 	defer c.RUnlock()
-	return c.NetworkCfg
+	if c.NetworkCfg == nil {
+		return nil, false
+	}
+
+	return c.NetworkCfg, true
 }
 
 // RemovePartitionCfg removes partition config
