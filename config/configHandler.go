@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -8,14 +8,15 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/unrolled/render"
+	"github.com/zhouqiang-cl/hack/types"
 )
 
 type processHandler struct {
-	c  *ConfigManager
+	c  *Manager
 	rd *render.Render
 }
 
-func newProcessHandler(c *ConfigManager, rd *render.Render) *processHandler {
+func newProcessHandler(c *Manager, rd *render.Render) *processHandler {
 	return &processHandler{
 		c:  c,
 		rd: rd,
@@ -24,7 +25,7 @@ func newProcessHandler(c *ConfigManager, rd *render.Render) *processHandler {
 
 // AddFailpointConfig adds failpoint config
 func (p *processHandler) AddFailpointConfig(w http.ResponseWriter, r *http.Request) {
-	cfg := &FailpointConfig{}
+	cfg := &types.FailpointConfig{}
 	err := readJSON(r.Body, cfg)
 	if err != nil {
 		p.rd.JSON(w, http.StatusBadRequest, err.Error())
@@ -36,7 +37,7 @@ func (p *processHandler) AddFailpointConfig(w http.ResponseWriter, r *http.Reque
 
 // RemoveFailpointConfig removes failpoint config
 func (p *processHandler) RemoveFailpointConfig(w http.ResponseWriter, r *http.Request) {
-	cfg := &FailpointConfig{}
+	cfg := &types.FailpointConfig{}
 	err := readJSON(r.Body, cfg)
 	if err != nil {
 		p.rd.JSON(w, http.StatusBadRequest, err.Error())
@@ -59,7 +60,7 @@ func (p *processHandler) CleanFailpointConfig(w http.ResponseWriter, r *http.Req
 
 // AddPartition adds partition
 func (p *processHandler) AddPartitionConfig(w http.ResponseWriter, r *http.Request) {
-	cfg := &NetworkConfig{}
+	cfg := &types.NetworkConfig{}
 	err := readJSON(r.Body, cfg)
 	if err != nil {
 		p.rd.JSON(w, http.StatusBadRequest, err.Error())

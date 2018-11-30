@@ -1,13 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"context"
 
 	"github.com/ngaut/log"
 )
@@ -16,7 +16,7 @@ var defaultPushMetricsInterval = 15 * time.Second
 
 var (
 	dbName      = flag.String("db", "test", "database name")
-	addr      = flag.String("addr", "127.0.0.1:4000", "database name")
+	addr        = flag.String("addr", "127.0.0.1:4000", "database name")
 	accounts    = flag.Int("accounts", 1000000, "the number of accounts")
 	interval    = flag.Duration("interval", 2*time.Second, "the interval")
 	tables      = flag.Int("tables", 1, "the number of the tables")
@@ -53,7 +53,6 @@ func main() {
 		cancel()
 		os.Exit(0)
 	}()
-	
 
 	cfg := Config{
 		NumAccounts: *accounts,

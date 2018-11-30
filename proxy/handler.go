@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/zhouqiang-cl/hack/utils"
 	"io"
 	"math/rand"
 	"strconv"
@@ -10,6 +9,9 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/ngaut/log"
+	"github.com/zhouqiang-cl/hack/config"
+	"github.com/zhouqiang-cl/hack/types"
+	"github.com/zhouqiang-cl/hack/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"
@@ -29,13 +31,13 @@ var (
 // ProxyHandler is proxy handler
 type ProxyHandler struct {
 	ctx          context.Context
-	cfgManager   *ConfigManager
+	cfgManager   *config.Manager
 	upstream     string
 	upstreamConn *grpc.ClientConn
 }
 
 // NewProxyHandler creates new proxy handler
-func NewProxyHandler(ctx context.Context, upstream string, cfgManager *ConfigManager) (*ProxyHandler, error) {
+func NewProxyHandler(ctx context.Context, upstream string, cfgManager *config.Manager) (*ProxyHandler, error) {
 	streamer := &ProxyHandler{
 		ctx:        ctx,
 		cfgManager: cfgManager,
@@ -237,7 +239,7 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 	return nil
 }
 
-func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.ClientStream, cfg *NetworkConfig) error {
+func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.ClientStream, cfg *types.NetworkConfig) error {
 	pe, ok := peer.FromContext(src.Context())
 	if !ok {
 		log.Error("get peer failed")
@@ -257,7 +259,7 @@ func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.Cli
 	return nil
 }
 
-func (p *ProxyHandler) processEgressNetwork(index int, src grpc.ClientStream, dst grpc.ServerStream, cfg *NetworkConfig) error {
+func (p *ProxyHandler) processEgressNetwork(index int, src grpc.ClientStream, dst grpc.ServerStream, cfg *types.NetworkConfig) error {
 	pe, ok := peer.FromContext(src.Context())
 	if !ok {
 		log.Error("get peer failed")
@@ -272,6 +274,5 @@ func (p *ProxyHandler) processEgressNetwork(index int, src grpc.ClientStream, ds
 	if utils.MatchInArray(cfg.Egress, egressIP) {
 		return p.processOutNormal(index, src, dst)
 	}
-
 	return nil
 }
