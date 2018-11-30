@@ -210,12 +210,7 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 	return nil
 }
 
-type NetworkConfig struct {
-	Ingress []string
-	Egress  []string
-}
-
-func (p *ProxyHandler) processNetwork(src grpc.ServerStream, dst grpc.ClientStream, cfg NetworkConfig) error {
+func (p *ProxyHandler) processNetworkPartition(src grpc.ServerStream, dst grpc.ClientStream, cfg NetworkConfig) error {
 
 	return nil
 }
