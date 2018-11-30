@@ -9,7 +9,7 @@ import (
 	"github.com/juju/errors"
 	"github.com/ngaut/log"
 	"github.com/zhouqiang-cl/hack/types"
-	"github.com/zhouqiang-cl/hack/util"
+	"github.com/zhouqiang-cl/hack/utils"
 )
 
 func init() {
@@ -121,12 +121,12 @@ func doFailpoint(kv string, path string, rule string) error {
 		return errors.Trace(err)
 	}
 	url := fmt.Sprintf("http://%s:10008/config/failpoint/add", kv)
-	_, err = util.DoPost(url, data)
+	_, err = utils.DoPost(url, data)
 	return errors.Trace(err)
 }
 
 func emptyFailpoints(kv string) error {
 	url := fmt.Sprintf("http://%s:10008/config/failpoint/clean", kv)
-	_, err := util.DoPost(url, []byte{})
+	_, err := utils.DoPost(url, []byte{})
 	return errors.Trace(err)
 }
