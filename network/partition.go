@@ -194,7 +194,12 @@ func addOtherHosts(hosts, groups []string, cfg *types.NetworkConfig) {
 
 func randomFullPartitionGroups(nodes *types.Topological) []types.Group {
 	var groups []types.Group
-	randC := rand.Intn(len(nodes.TiKV))
+	var randC int
+	if len(nodes.TiKV) <= 1 {
+		return groups
+	} else {
+		randC = rand.Intn(len(nodes.TiKV)-1) + 1
+	}
 
 	group1 := types.Group{}
 	for i := 0; i < randC; i++ {

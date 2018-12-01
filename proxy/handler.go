@@ -266,7 +266,7 @@ func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.Cli
 }
 
 func (p *ProxyHandler) processEgressNetwork(index int, src grpc.ClientStream, dst grpc.ServerStream, cfg *types.NetworkConfig) error {
-	pe, ok := peer.FromContext(src.Context())
+	pe, ok := peer.FromContext(dst.Context())
 	if !ok {
 		log.Error("get peer failed")
 	}
