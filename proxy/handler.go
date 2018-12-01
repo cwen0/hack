@@ -257,11 +257,11 @@ func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.Cli
 		return p.processNormal(src, dst)
 	}
 
-	if rand.Intn(100) < 1 {
+	if rand.Intn(1000) < 1 {
 		// reduce log
 		log.Infof("drop egress request: %s", pe.Addr.String())
 	}
-	
+
 	return nil
 }
 
@@ -281,7 +281,7 @@ func (p *ProxyHandler) processEgressNetwork(index int, src grpc.ClientStream, ds
 		return p.processOutNormal(index, src, dst)
 	}
 
-	if rand.Intn(100) < 1 {
+	if rand.Intn(1000) < 1 {
 		// reduce log
 		log.Infof("drop egress request: %s", pe.Addr.String())
 	}
