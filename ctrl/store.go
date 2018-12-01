@@ -39,7 +39,3 @@ func (s *storeHandler) GetStores(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
-
-func (s *storeHandler) GetStoreLeader(w http.ResponseWriter, r *http.Request) {
-
-}
