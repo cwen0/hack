@@ -26,19 +26,19 @@ func main() {
 	switch cmd {
 	case "failpoint":
 		url := fmt.Sprintf("http://%s/operation/failpoint?type=%s", managerAddr, param)
-		_, err := utils.DoPost(url, nil)
+		_, err := utils.DoPost(url, []byte{})
 		if err != nil {
 			log.Fatal("failpoint failed %+v",errors.ErrorStack(err))
 		}
 	case "network":
 		url := fmt.Sprintf("http://%s/operation/partition?kind=%s", managerAddr, param)
-		_, err := utils.DoPost(url, nil)
+		_, err := utils.DoPost(url, []byte{})
 		if err != nil {
 			log.Fatalf("network failed %+v", errors.ErrorStack(err))
 		}
 	case "evict_leader":
 		url := fmt.Sprintf("http://%s/operation/evictleader?ip=%s", managerAddr, param)
-		_, err := utils.DoPost(url, nil)
+		_, err := utils.DoPost(url, []byte{})
 		if err != nil {
 			log.Fatalf("evict leader failed %+v", errors.ErrorStack(err))
 		}
