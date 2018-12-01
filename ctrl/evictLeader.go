@@ -8,6 +8,7 @@ import (
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
 	"github.com/unrolled/render"
+	"github.com/juju/errors"
 )
 
 var (
@@ -47,7 +48,7 @@ func (e *evictLeaderHandler) EvictLeader(w http.ResponseWriter, r *http.Request)
 func doEvictLeader(tikvIP, pdAddr string) error {
 	storesInfo, err := getStores(pdAddr)
 	if err!= nil {
-		return err
+		return errors.Trace(err)
 	}
 
 	var storeID uint64
@@ -86,13 +87,13 @@ func getStores(pdAddr string) (types.StoresInfo, error) {
 	apiURL := fmt.Sprintf("http://%s/%s", pdAddr, storesPrefix)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
-		return types.StoresInfo{}, err
+		return types.StoresInfo{}, errors.Trace(err)
 	}
 
 	storesInfo := types.StoresInfo{}
 	err = json.Unmarshal(body, &storesInfo)
 	if err != nil {
-		return types.StoresInfo{}, err
+		return types.StoresInfo{}, errors.Trace(err)
 	}
 
 	return storesInfo, nil
@@ -102,13 +103,13 @@ func getStore(storeID uint64, pdAddr string) (types.StoreInfo, error) {
 	apiURL := fmt.Sprintf("%s/%s/%d", pdAddr, storePrefix, storeID)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
-		return types.StoreInfo{}, err
+		return types.StoreInfo{}, errors.Trace(err)
 	}
 
 	storeInfo := types.StoreInfo{}
 	err = json.Unmarshal(body, &storeInfo)
 	if err != nil {
-		return types.StoreInfo{}, err
+		return types.StoreInfo{}, errors.Trace(err)
 	}
 
 	return storeInfo, nil

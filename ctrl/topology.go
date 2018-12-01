@@ -52,11 +52,11 @@ func getTopologyInfo(pdAddr string) (types.Topological, error) {
 	var topologyInfo types.Topological
 	storesInfo, err := getStores(pdAddr)
 	if err != nil {
-		return types.Topological{}, err
+		return types.Topological{}, errors.Trace(err)
 	}
 	membersInfo, err := getMembers(pdAddr)
 	if err != nil {
-		return types.Topological{}, err
+		return types.Topological{}, errors.Trace(err)
 	}
 
 	for _, store := range storesInfo.Stores {
