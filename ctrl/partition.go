@@ -31,6 +31,24 @@ func newPartitionHandler(c *Manager, rd *render.Render) *partitionHandler {
 	}
 }
 
+func (p *partitionHandler) CleanNetworkPartition(w http.ResponseWriter, r *http.Request) {
+	topology, err := getTopologyInfo(p.c.pdAddr)
+	if err != nil {
+		p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	for _, host := range topology.TiKV {
+		err := emptyPartition(host)
+		if err != nil {
+			p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	p.rd.JSON(w, http.StatusOK, nil)
+}
+
 func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
 	kind := r.URL.Query()["kind"]
 	if len(kind) == 0 {
