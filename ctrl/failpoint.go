@@ -32,6 +32,8 @@ func (f *failpointCtl) start(typ string) error {
 	case "certain":
 		f.cleanFailpoint()
 		return errors.Trace(f.doCertainFailpoint())
+	case "clean":
+		return errors.Trace(f.cleanFailpoint())
 	}
 	return errors.NotSupportedf("typ %s", typ)
 }
