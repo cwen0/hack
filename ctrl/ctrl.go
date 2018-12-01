@@ -12,8 +12,10 @@ var (
 	cmd   string
 	param string
 )
+
+// const
 const (
-	PD_ADDR = "127.0.0.1:32800"
+	PDADDR  = "127.0.0.1:32800"
 	TIMEOUT = 5 * time.Second
 )
 
@@ -33,7 +35,7 @@ func newCtrl(toplogic *types.Topological) *Ctrl {
 	return &Ctrl{
 		fpCtrl: newFailpointCtl(toplogic),
 		npCtrl: newNetworkCtl(toplogic),
-		elCtrl: newEvictLeaderCtl(PD_ADDR,TIMEOUT),
+		elCtrl: newEvictLeaderCtl(PDADDR, TIMEOUT),
 	}
 }
 

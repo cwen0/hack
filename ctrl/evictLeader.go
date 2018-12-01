@@ -78,7 +78,7 @@ func (e *evictLeaderCtl) doEvictLeader(tikvIP string) error {
 	return nil
 }
 
-func (e *evictLeaderCtl) getStores() (*types.StoresInfo,error) {
+func (e *evictLeaderCtl) getStores() (*types.StoresInfo, error) {
 	apiURL := fmt.Sprintf("%s/%s", e.url, storesPrefix)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
@@ -94,8 +94,8 @@ func (e *evictLeaderCtl) getStores() (*types.StoresInfo,error) {
 	return &storesInfo, nil
 }
 
-func (e *evictLeaderCtl) getStore(storeID uint64) (*types.StoreInfo,error) {
-	apiURL := fmt.Sprintf("%s/%s/%s", e.url, storePrefix, storeID)
+func (e *evictLeaderCtl) getStore(storeID uint64) (*types.StoreInfo, error) {
+	apiURL := fmt.Sprintf("%s/%s/%d", e.url, storePrefix, storeID)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
 		return nil, err
@@ -119,6 +119,5 @@ func DeferClose(c io.Closer, err *error) {
 }
 
 func getLeaderEvictSchedulerInfo(storeID uint64) *types.SchedulerInfo {
-	return &types.SchedulerInfo{"evict-leader-scheduler", storeID}
+	return &types.SchedulerInfo{Name: "evict-leader-scheduler", StoreID: storeID}
 }
-

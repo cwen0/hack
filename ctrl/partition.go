@@ -30,6 +30,7 @@ func (n *networkCtl) start(kind types.PartitionKind) error {
 		Kind: kind,
 	}
 	configs, err := network.GetProxyPartitionConfig(n.toplogic, partition)
+	log.Debugf("config is %+v", configs)
 	if err != nil {
 		return errors.Trace(err)
 	}
