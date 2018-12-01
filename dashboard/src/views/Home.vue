@@ -1,16 +1,84 @@
 <template>
     <!--<div :style="{ height: '300px'}" class="clusterChart" ref="clusterChart"></div>-->
     <div>
-        <div class="clusterChart" id="clusterChart">
+        <div class="content">
+            <el-row :gutter="20">
+                <el-col :span="14">
+                    <!--<div class="grid-content bg-purple"></div>-->
+                    <div class="clusterChart" id="clusterChart">
 
-        </div>
-        <!--<el-button @click="drawCluster" class="el-button">Cluster Info</el-button>-->
-        <div class="monitor">
-            <h1>TiDB Monitor</h1>
-            <br>
-            <div class="metrics" id="metricChart">
+                    </div>
+                </el-col>
+                <el-col :span="10">
+                    <!--<div class="grid-content bg-purple"></div>-->
+                    <div class="forms">
+                        <h1>Controller</h1>
+                        <br>
+                        <el-form>
+                            <el-card class="box-card">
+                                <el-form-item label="Evict TiKV Leader: " prop="input tikv ip">
+                                    <el-input style="width: 200px" v-model="evictLeadrIP"></el-input>
+                                    <br>
+                                    <br>
+                                    <el-button @click="submitEvictTiKVLeader" type="primary">
+                                        Confirm
+                                    </el-button>
+                                </el-form-item>
+                            </el-card>
+                            <br>
+                            <el-card class="box-card">
+                                <el-form-item>
+                                    <span>Network partition:</span>
+                                    <br>
+                                    <el-radio-group v-model="partitionKind">
+                                        <el-radio label="full">Full Partition</el-radio>
+                                        <el-radio label="partial">Partial Partiton</el-radio>
+                                        <el-radio label="simplex">Simplex Partition</el-radio>
+                                        <el-radio label="clean">Clean</el-radio>
+                                    </el-radio-group>
+                                    <el-input placeholder="input tikv group ip" size="medium"
+                                              v-model="group1"></el-input>
+                                    <el-input placeholder="input tikv group ip" size="medium"
+                                              v-model="group2"></el-input>
+                                    <br>
+                                    <br>
+                                    <el-button @click="submitNetworkPartition" class="button-n" size="large"
+                                               type="primary">
+                                        Confirm To Exec Network
+                                        Partition
+                                    </el-button>
+                                </el-form-item>
+                            </el-card>
+                            <br>
+                            <el-card class="box-card">
+                                <el-form-item>
+                                    <span> Failpoint:</span>
+                                    <br>
+                                    <el-radio-group v-model="failpoint">
+                                        <el-radio label="random">Random</el-radio>
+                                        <el-radio label="certain">Certain</el-radio>
+                                        <el-radio label="clean">Clean</el-radio>
+                                    </el-radio-group>
+                                    <br>
+                                    <br>
+                                    <el-button @click="submitFailpoint" class="button-n" size="large" type="primary">
+                                        Confirm To Exec Failpoint
+                                    </el-button>
+                                </el-form-item>
+                            </el-card>
+                        </el-form>
+                    </div>
+                </el-col>
+            </el-row>
+            <!--<el-button @click="drawCluster" class="el-button">Cluster Info</el-button>-->
+            <div class="monitor">
+                <h1>TiDB Monitor</h1>
+                <br>
+                <div class="metrics" id="metricChart">
 
+                </div>
             </div>
+
         </div>
     </div>
 </template>
@@ -21,6 +89,11 @@
     export default {
         data() {
             return {
+                failpoint: '',
+                evictLeadrIP: '',
+                partitionKind: 'full',
+                group1: '',
+                group2: '',
                 clusterInfo: {
                     tidb: [],
                     tikv: [],
@@ -30,7 +103,8 @@
                     kind: "",
                     groups: [],
                     real_groups: [],
-                }
+                },
+                storesInfo: new Map()
             }
         },
         created() {
@@ -39,12 +113,48 @@
         updated() {
         },
         mounted() {
-            this.drawCluster();
+            this.getStoresInfo()
             this.drawMetric();
         },
+        beforeMount() {
+            // var self = this;
+            // setInterval(this.getStoresInfo, 10000);
+            // setInterval(this.drawMetric, 10000);
+        },
         methods: {
+            getStoresInfo() {
+                ajax.getStoresInfo().then(result => {
+                    if (result.data == null) {
+                        this.$notify.error({
+                            title: 'ERROR',
+                            message: "fail to get stores info",
+                            duration: 0
+                        })
+                    } else {
+                        var infos = result.data.stores;
+                        infos.forEach(item => {
+                            this.storesInfo.set(item.store.address, item.status.leader_count);
+                        })
+                        console.log(infos)
+                        console.log(this.storesInfo)
+                    }
+                    this.drawCluster()
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
+            },
+
+            genST(tikv, count) {
+                return "tikv:" + tikv + "\nleader:" + count
+            },
+
             drawCluster() {
                 ajax.getClusterInfo().then(result => {
+                    console.log(result)
                     if (result.data != null) {
                         this.clusterInfo = result.data;
 
@@ -54,12 +164,11 @@
                         var startAngle = 270;
                         var r = 250;
                         var datas = []
-
                         this.clusterInfo.tikv.forEach((tikv, index) => {
                             var angle = startAngle + increment * index;
                             var rads = angle * Math.PI / 180;
                             datas.push({
-                                name: "tikv:" + tikv,
+                                name: this.genST(tikv, this.storesInfo.get(tikv)),
                                 x: Math.trunc(600 + r * Math.cos(rads)),
                                 y: Math.trunc(600 + r * Math.sin(rads)),
                             })
@@ -70,20 +179,19 @@
                                 this.partition = result.data
                             }
 
-                            console.log(result.data);
                             var links = [];
-                            if (this.partition.real_groups.length <= 1) {
+                            if (this.partition.real_groups == null || this.partition.real_groups.length <= 1) {
                                 this.clusterInfo.tikv.forEach((tikv, index) => {
                                     for (var i = 0; i < index; i++) {
                                         links.push({
-                                            source: "tikv:" + tikv,
-                                            target: "tikv:" + this.clusterInfo.tikv[i],
+                                            source: this.genST(tikv, this.storesInfo.get(tikv)),
+                                            target: this.genST(this.clusterInfo.tikv[i], this.storesInfo.get(this.clusterInfo.tikv[i])),
                                         })
                                     }
                                     for (var i = index + 1; i < this.clusterInfo.tikv.length; i++) {
                                         links.push({
-                                            source: "tikv:" + tikv,
-                                            target: "tikv:" + this.clusterInfo.tikv[i],
+                                            source: this.genST(tikv, this.storesInfo.get(tikv)),
+                                            target: this.genST(this.clusterInfo.tikv[i], this.storesInfo.get(this.clusterInfo.tikv[i])),
                                         })
                                     }
                                 })
@@ -92,17 +200,18 @@
                                     case "full":
                                         this.partition.real_groups.forEach(item => {
                                             item.forEach((h, index) => {
+                                                // console.log(this.storesInfo.get(h))
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + h,
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(h, this.storesInfo.get(h)),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + h,
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(h, this.storesInfo.get(h)),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -119,15 +228,15 @@
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -141,15 +250,15 @@
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -164,15 +273,15 @@
                                                     item = item.concat(this.partition.real_groups[1])
                                                     for (var i = 0; i < index; i++) {
                                                         links.push({
-                                                            source: "tikv:" + itemt[index],
-                                                            target: "tikv:" + item[i],
+                                                            source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                            target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                             symbolSize: [3, 15],
                                                         })
                                                     }
                                                     for (var i = index + 1; i < item.length; i++) {
                                                         links.push({
-                                                            source: "tikv:" + itemt[index],
-                                                            target: "tikv:" + item[i],
+                                                            source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                            target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                             symbolSize: [3, 15],
                                                         })
                                                     }
@@ -182,7 +291,8 @@
                                         } else {
                                             this.$notify.error({
                                                 title: 'Error',
-                                                message: "partition is not supported !!"
+                                                message: "partition is not supported !!",
+                                                duration: 0
                                             })
                                         }
                                         break;
@@ -197,15 +307,15 @@
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -219,15 +329,15 @@
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -241,15 +351,15 @@
                                                     item = item.concat(this.partition.real_groups[1])
                                                     for (var i = 0; i < index; i++) {
                                                         links.push({
-                                                            source: "tikv:" + itemt[index],
-                                                            target: "tikv:" + item[i],
+                                                            source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                            target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                             symbolSize: [3, 15],
                                                         })
                                                     }
                                                     for (var i = index + 1; i < item.length; i++) {
                                                         links.push({
-                                                            source: "tikv:" + itemt[index],
-                                                            target: "tikv:" + item[i],
+                                                            source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                            target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                             symbolSize: [3, 15],
                                                         })
                                                     }
@@ -259,14 +369,16 @@
                                         } else {
                                             this.$notify.error({
                                                 title: 'Error',
-                                                message: "partition is not supported !!"
+                                                message: "partition is not supported !!",
+                                                duration: 0
                                             })
                                         }
                                         break;
                                     default:
                                         this.$notify.error({
                                             title: 'Error',
-                                            message: "partition is not supported !!"
+                                            message: "partition is not supported !!",
+                                            duration: 0
                                         })
                                 }
                             }
@@ -283,7 +395,7 @@
                                         type: 'graph',
                                         layout: 'none',
                                         symbolSize: 50,
-                                        roam: true,
+                                        // roam: true,
                                         label: {
                                             normal: {
                                                 show: true
@@ -316,19 +428,22 @@
                         }).catch(resp => {
                             this.$notify.error({
                                 title: 'Error',
-                                message: resp.message
+                                message: resp.message,
+                                duration: 0
                             })
                         })
                     } else {
                         this.$notify.error({
                             title: 'Error',
-                            message: "cluster info is empty"
+                            message: "cluster info is empty",
+                            duration: 0
                         })
                     }
                 }).catch(resp => {
                     this.$notify.error({
                         title: 'Error',
-                        message: resp.message
+                        message: resp.message,
+                        duration: 0
                     })
                 })
             },
@@ -393,7 +508,7 @@
                 ajax.getDuration(metric, timeFrom, timeTo).then(result => {
                     var time = []
                     var value = []
-                    console.log(result.data.data.result[0])
+                    // console.log(result.data.data.result[0])
                     result.data.data.result[0].values.forEach((e, index) => {
                         var date = new Date(e[0] * 1000);
                         // Hours part from the timestamp
@@ -418,31 +533,122 @@
             },
 
             drawMetric() {
-                console.log("test");
                 const end = new Date();
                 const start = new Date();
                 start.setTime(start.getTime() - 3600 * 1000 * 24);
                 var startTimestamp = start.getTime() / 1000
                 var endTimestamp = end.getTime() / 1000
                 var option = this.drawData("Duration", "tidb_server_handle_query_duration_seconds_bucket", startTimestamp, endTimestamp, "metricChart")
-                console.log("test");
+            },
+
+            submitEvictTiKVLeader() {
+                ajax.setevictTikvLeader(this.evictLeadrIP).then(result => {
+                    this.$notify({
+                        title: 'Success',
+                        type: 'success',
+                        message: 'Evict tikv ' + this.evictLeadrIP + ' leaders Successfully'
+                    })
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
+            },
+
+            submitNetworkPartition() {
+                if (this.partitionKind === "clean") {
+                    ajax.cleanNetworkPartition().then(result => {
+                        this.$notify({
+                            title: 'Success',
+                            type: 'success',
+                            message: 'clean network partition'
+                        })
+                    }).then(resp => {
+                        this.$notify.error({
+                            title: 'ERROR',
+                            message: resp.message,
+                            duration: 0
+                        })
+                    })
+                    return
+                }
+
+                let groups = [];
+                if (this.group1 != null && this.group1.trim() != null) {
+                    let gs = this.group1.split(",")
+                    groups.push(gs)
+                }
+
+                if (this.group2 != null && this.group2.trim() != null) {
+                    let gs = this.group2.split(",")
+                    groups.push(gs)
+                }
+
+                this.ajax.setNetworkPartition({
+                    "partition_kind": this.partition_kind,
+                    "groups": groups,
+                }).then(result => {
+                    this.$notify({
+                        title: 'Success',
+                        type: 'success',
+                        message: 'start to inject network partition'
+                    })
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
+            },
+            submitFailpoint() {
+                this.ajax.setFailpoint({
+                    "type": this.failpoint,
+                }).then(result => {
+                    this.$notify({
+                        title: 'Success',
+                        type: 'success',
+                        message: 'start to inject failpoint'
+                    })
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
             }
         }
     }
 </script>
 
 <style scoped>
+    .content {
+        width: 95%;
+    }
     .clusterChart {
+        padding-left: 4em;
         width: 80em;
         height: 60em;
     }
 
     .monitor {
+        padding-left: 4em;
         padding-top: 12em;
     }
 
     .metrics {
-        width: 80em;
+        width: 120em;
         height: 50em;
+    }
+
+    .forms {
+        padding-top: 3em;
+    }
+
+    .button-n {
+        width: 200px,
     }
 </style>
