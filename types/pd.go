@@ -34,8 +34,6 @@ type Duration struct {
 
 // StoreStatus is TiKV store status returned from PD RESTful interface
 type StoreStatus struct {
-	Capacity           ByteSize `json:"capacity"`
-	Available          ByteSize `json:"available"`
 	LeaderCount        int               `json:"leader_count"`
 	RegionCount        int               `json:"region_count"`
 	SendingSnapCount   uint32            `json:"sending_snap_count"`
@@ -45,7 +43,6 @@ type StoreStatus struct {
 
 	StartTS         time.Time         `json:"start_ts"`
 	LastHeartbeatTS time.Time         `json:"last_heartbeat_ts"`
-	Uptime          Duration `json:"uptime"`
 }
 
 // StoreInfo is a single store info returned from PD RESTful interface

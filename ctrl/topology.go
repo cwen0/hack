@@ -3,20 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/juju/errors"
 	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
-	"net/http"
-	"time"
 )
 
 var membersPrefix = "pd/api/v1/members"
-
-type topology struct {
-	url        string
-	httpClient *http.Client
-}
 
 type topologyHandler struct {
 	c  *Manager
@@ -30,74 +25,52 @@ func newTopologynHandler(c *Manager, rd *render.Render) *topologyHandler {
 	}
 }
 
-func (f *topologyHandler) GetTopology(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (e *topology) start(tikvIP string) (*types.Topological, error) {
-	topo, err := e.doTopology()
-	return topo ,errors.Trace(err)
-}
-
-func newTopplogyCtl(url string, timeout time.Duration) *topology {
-	return &topology{
-		url:        url,
-		httpClient: &http.Client{Timeout: timeout},
+func (t *topologyHandler) GetTopology(w http.ResponseWriter, r *http.Request) {
+	topology, err := getTopologyInfo(t.c.pdAddr)
+	if err != nil {
+		t.rd.JSON(w, http.StatusInternalServerError, err.Error())
+		return
 	}
+	t.rd.JSON(w, http.StatusOK, topology)
 }
 
-func (e *topology) getStores() (*types.StoresInfo, error) {
-	apiURL := fmt.Sprintf("%s/%s", e.url, storesPrefix)
+func getMembers(pdAddr string) (types.MembersInfo, error) {
+	apiURL := fmt.Sprintf("http://%s/%s", pdAddr, membersPrefix)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
-		return nil, err
-	}
-
-	storesInfo := types.StoresInfo{}
-	err = json.Unmarshal(body, &storesInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	return &storesInfo, nil
-}
-
-func (e *topology) getMembers() (*types.MembersInfo, error) {
-	apiURL := fmt.Sprintf("%s/%s", e.url, membersPrefix)
-	body, err := utils.DoGet(apiURL)
-	if err != nil {
-		return nil, err
+		return types.MembersInfo{}, err
 	}
 
 	membersInfo := types.MembersInfo{}
 	err = json.Unmarshal(body, &membersInfo)
 	if err != nil {
-		return nil, err
+		return types.MembersInfo{}, err
 	}
 
-	return &membersInfo, nil
+	return membersInfo, nil
 }
 
-func (e *topology) doTopology() (*types.Topological, error) {
-	var topoInfo *types.Topological
-	topoInfo, err := e.getTopologyInfo()
+func getTopologyInfo(pdAddr string) (types.Topological, error) {
+	var topologyInfo types.Topological
+	storesInfo, err := getStores(pdAddr)
 	if err != nil {
-		return nil, err
+		return types.Topological{}, errors.Trace(err)
 	}
-	return topoInfo, nil
-}
-
-
-func (e *topology)getTopologyInfo() (*types.Topological, error){
-	var topologyInfo *types.Topological
-	storesInfo, _ := e.getStores()
-	membersInfo, _ := e.getMembers()
 
 	for _, store := range storesInfo.Stores {
-		topologyInfo.TiKV = append(topologyInfo.TiKV, store.Store.Address)
+		tikvIP, exist := utils.Resolve(store.Store.Address)
+		if !exist {
+			return types.Topological{}, errors.Errorf("can not resolve %s", store.Store.Address)
+		}
+		topologyInfo.TiKV = append(topologyInfo.TiKV, tikvIP)
 	}
-	for _, member := range membersInfo.Members{
-		topologyInfo.PD = append(topologyInfo.PD, member.Name)
+
+	ip, err := utils.GetIP(pdAddr)
+	if err != nil {
+		return types.Topological{}, errors.Trace(err)
 	}
+	topologyInfo.PD = []string{ip}
+	topologyInfo.TiDB = []string{tidbAddr}
+
 	return topologyInfo, nil
 }

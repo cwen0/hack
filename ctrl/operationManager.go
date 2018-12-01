@@ -12,29 +12,36 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// prefix
 const (
-	APIPrefix             = "/operation"
-	StateNetworkPartition = "network_partition"
-	StateFailpoint        = "failpoint"
+	APIPrefix                 = "/operation"
+	StateNetworkPartition     = "network_partition"
+	StateFailpoint            = "failpoint"
+	OperationNetworkPartition = "network_partition"
+	OperationFailpoint        = "failpoint"
 )
 
+// State is state
 type State struct {
 	operation string
 	partition types.Partition
 }
 
+// Logs is logs
 type Logs struct {
-	logs []Log
+	Items []Log
 }
 
+// Log is log
 type Log struct {
-	operation string
-	parameter string
-	time      string
+	Operation string
+	Parameter string
+	TimeStamp int64
 }
 
 var state State
 var logs Logs
+var partition types.Partition
 
 // Manager is the operation manager.
 type Manager struct {
@@ -100,13 +107,14 @@ func (c *Manager) createRouter() *mux.Router {
 	evictLeaderHandler := newEvictLeaderHandler(c, rd)
 	logHandler := newLogHandler(c, rd)
 	stateHandler := newStateHandler(c, rd)
+	storeHandler := newStoreHandler(c, rd)
 
 	// failpoint route
 	router.HandleFunc("/failpoint", failpointHandler.CreateFailpoint).Methods("POST")
-	router.HandleFunc("/failpoint", failpointHandler.GetFailpoint).Methods("GET")
 
 	// network partition route
 	router.HandleFunc("/partition", partitionHandler.CreateNetworkPartition).Methods("POST")
+	router.HandleFunc("/partition/clean", partitionHandler.CleanNetworkPartition).Methods("POST")
 	router.HandleFunc("/partition", partitionHandler.GetNetworkPartiton).Methods("GET")
 
 	// topology route
@@ -120,6 +128,9 @@ func (c *Manager) createRouter() *mux.Router {
 
 	// state route
 	router.HandleFunc("/state", stateHandler.GetState).Methods("GET")
+
+	//store route
+	router.HandleFunc("/store", storeHandler.GetStores).Methods("GET")
 
 	return router
 }

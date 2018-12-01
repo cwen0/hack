@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/juju/errors"
+	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
-	"github.com/unrolled/render"
 )
 
 var (
@@ -46,15 +47,23 @@ func (e *evictLeaderHandler) EvictLeader(w http.ResponseWriter, r *http.Request)
 
 func doEvictLeader(tikvIP, pdAddr string) error {
 	storesInfo, err := getStores(pdAddr)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
 	var storeID uint64
 	for _, store := range storesInfo.Stores {
-		if store.Store.Address == tikvIP {
+		storeIP, ok := utils.Resolve(store.Store.Address)
+		if !ok {
+			return errors.Errorf("address %s can not convert to ip", store.Store.Address)
+		}
+		if storeIP == tikvIP {
 			storeID = store.Store.Id
 		}
 	}
 
 	leaderEvictInfo := getLeaderEvictSchedulerInfo(storeID)
-	apiURL := fmt.Sprintf("%s/%s", pdAddr, schedulersPrefix)
+	apiURL := fmt.Sprintf("http://%s/%s", pdAddr, schedulersPrefix)
 	data, err := json.Marshal(leaderEvictInfo)
 	if err != nil {
 		return err
@@ -65,49 +74,39 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 		return err
 	}
 
-	for {
-		storeInfo, err := getStore(storeID, pdAddr)
-		if err != nil {
-			return err
-		}
-		if storeInfo.Status.LeaderCount == 0 {
-			break
-		}
-	}
-
 	return nil
 }
 
-func getStores(pdAddr string) (*types.StoresInfo, error) {
-	apiURL := fmt.Sprintf("%s/%s", pdAddr, storesPrefix)
+func getStores(pdAddr string) (types.StoresInfo, error) {
+	apiURL := fmt.Sprintf("http://%s/%s", pdAddr, storesPrefix)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
-		return nil, err
+		return types.StoresInfo{}, errors.Trace(err)
 	}
 
 	storesInfo := types.StoresInfo{}
 	err = json.Unmarshal(body, &storesInfo)
 	if err != nil {
-		return nil, err
+		return types.StoresInfo{}, errors.Trace(err)
 	}
 
-	return &storesInfo, nil
+	return storesInfo, nil
 }
 
-func getStore(storeID uint64, pdAddr string) (*types.StoreInfo, error) {
-	apiURL := fmt.Sprintf("%s/%s/%d", pdAddr, storePrefix, storeID)
+func getStore(storeID uint64, pdAddr string) (types.StoreInfo, error) {
+	apiURL := fmt.Sprintf("http://%s/%s/%d", pdAddr, storePrefix, storeID)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
-		return nil, err
+		return types.StoreInfo{}, errors.Trace(err)
 	}
 
 	storeInfo := types.StoreInfo{}
 	err = json.Unmarshal(body, &storeInfo)
 	if err != nil {
-		return nil, err
+		return types.StoreInfo{}, errors.Trace(err)
 	}
 
-	return &storeInfo, nil
+	return storeInfo, nil
 }
 
 func getLeaderEvictSchedulerInfo(storeID uint64) *types.SchedulerInfo {

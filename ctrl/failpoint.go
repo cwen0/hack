@@ -31,61 +31,88 @@ func newFailpointHandler(c *Manager, rd *render.Render) *failpointHandler {
 }
 
 func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (f *failpointHandler) GetFailpoint(w http.ResponseWriter, r *http.Request) {
-
-}
-
-type failpointCtl struct {
-	toplogic *types.Topological
-}
-
-func newFailpointCtl(toplogic *types.Topological) *failpointCtl {
-	return &failpointCtl{toplogic: toplogic}
-}
-
-func (f *failpointCtl) start(typ string) error {
-	switch typ {
-	case "random":
-		f.cleanFailpoint()
-		return errors.Trace(f.doRandomFailpoint())
-	case "certain":
-		f.cleanFailpoint()
-		return errors.Trace(f.doCertainFailpoint())
-	case "clean":
-		return errors.Trace(f.cleanFailpoint())
+	fpType := r.URL.Query()["type"]
+	if len(fpType) == 0 {
+		f.rd.JSON(w, http.StatusBadRequest, "miss parameter ip")
+		return
 	}
-	return errors.NotSupportedf("typ %s", typ)
+	switch fpType[0] {
+	case "random":
+		log.Debugf("clean failpoint")
+		cleanFailpoint(f.c.pdAddr)
+		log.Debugf("clean failpoint finished")
+		err := doRandomFailpoint(f.c.pdAddr)
+		log.Debugf("do random failpoint")
+		if err != nil {
+			log.Debugf("do random failpoint failed %+v", errors.ErrorStack(err))
+			f.rd.JSON(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	case "certain":
+		cleanFailpoint(f.c.pdAddr)
+		err := doCertainFailpoint(f.c.pdAddr)
+		if err != nil {
+			f.rd.JSON(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	case "clean":
+		err := cleanFailpoint(f.c.pdAddr)
+		if err != nil {
+			f.rd.JSON(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	state = State{
+		operation: StateFailpoint,
+		partition: types.Partition{},
+	}
+
+	logs.Items = append(logs.Items, Log{
+		Operation: OperationFailpoint,
+		Parameter: fpType[0],
+		TimeStamp: time.Now().Unix(),
+	})
+
+	f.rd.JSON(w, http.StatusOK, nil)
 }
 
-func (f *failpointCtl) doRandomFailpoint() error {
-	kvs := f.getRandomTiKVs()
+func doRandomFailpoint(pdAddr string) error {
+	kvs, err := getRandomTiKVs(pdAddr)
+	if err != nil {
+		return err
+	}
 	for _, kv := range kvs {
-		pathes := f.getRandomFailpointPath()
+		pathes := getRandomFailpointPath()
 		err := doFailpoints(kv, pathes)
 		if err != nil {
-			log.Errorf("do failpoint error %v", err)
+			return err
 		}
 	}
 	return nil
 }
 
-func (f *failpointCtl) cleanFailpoint() error {
-	kvs := f.getRandomTiKVs()
+func cleanFailpoint(pdAddr string) error {
+	kvs, err := getRandomTiKVs(pdAddr)
+	if err != nil {
+		return err
+	}
 	for _, kv := range kvs {
 		err := emptyFailpoints(kv)
 		if err != nil {
-			log.Errorf("clean failpoint error %v", err)
+			return err
 		}
 	}
 	return nil
 }
 
-func (f *failpointCtl) doCertainFailpoint() error {
+func doCertainFailpoint(pdAddr string) error {
 	// rule := "pct(5)->delay(100)|pct(1)->timeout()"
-	for _, kv := range f.toplogic.TiKV {
+	topology, err := getTopologyInfo(pdAddr)
+	if err != nil {
+		return errors.Trace(err)
+	}
+	for _, kv := range topology.TiKV {
 		err := doFailpoints(kv, getAllPath())
 		if err != nil {
 			return errors.Trace(err)
@@ -94,23 +121,28 @@ func (f *failpointCtl) doCertainFailpoint() error {
 	return nil
 }
 
-func (f *failpointCtl) getRandomTiKVs() []string {
+func getRandomTiKVs(pdAddr string) ([]string, error) {
 	var (
 		kvs []string
 	)
 
-	leftTiKVs := make([]string, len(f.toplogic.TiKV))
-	count := rand.Intn(len(f.toplogic.TiKV))
-	copy(leftTiKVs, f.toplogic.TiKV)
+	topology, err := getTopologyInfo(pdAddr)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	leftTiKVs := make([]string, len(topology.TiKV))
+	count := rand.Intn(len(topology.TiKV))
+	copy(leftTiKVs, topology.TiKV)
 	for i := 0; i < count+1; i++ {
 		index := rand.Intn(len(leftTiKVs))
 		kvs = append(kvs, leftTiKVs[index])
 		leftTiKVs = append(leftTiKVs[:index], leftTiKVs[index+1:]...)
 	}
-	return kvs
+	return kvs, nil
 }
 
-func (f *failpointCtl) getRandomFailpointPath() []string {
+func getRandomFailpointPath() []string {
 	var (
 		pathes []string
 	)

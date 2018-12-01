@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/juju/errors"
+	"github.com/ngaut/log"
+	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/network"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
-	"github.com/ngaut/log"
-	"github.com/unrolled/render"
 )
 
 func init() {
@@ -31,12 +31,46 @@ func newPartitionHandler(c *Manager, rd *render.Render) *partitionHandler {
 	}
 }
 
-func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
-	kind := r.URL.Query()["kind"][0]
-	partition := &types.Partition{
-		Kind: types.PartitionKind(kind),
+func (p *partitionHandler) CleanNetworkPartition(w http.ResponseWriter, r *http.Request) {
+	topology, err := getTopologyInfo(p.c.pdAddr)
+	if err != nil {
+		p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	configs, err := network.GetProxyPartitionConfig(getToplogic(), partition)
+
+	for _, host := range topology.TiKV {
+		err := emptyPartition(host)
+		if err != nil {
+			p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	logs.Items = append(logs.Items, Log{
+		Operation: OperationNetworkPartition,
+		Parameter: "clean",
+		TimeStamp: time.Now().Unix(),
+	})
+
+	p.rd.JSON(w, http.StatusOK, nil)
+}
+
+func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
+	kind := r.URL.Query()["kind"]
+	if len(kind) == 0 {
+		p.rd.JSON(w, http.StatusBadRequest, "miss parameter ip")
+		return
+	}
+	localPartition := types.Partition{
+		Kind: types.PartitionKind(kind[0]),
+	}
+	topology, err := getTopologyInfo(p.c.pdAddr)
+	if err != nil {
+		p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	configs, err := network.GetProxyPartitionConfig(&topology, &localPartition)
 	for name, cfg := range configs {
 		log.Debugf("%s config is %+v", name, cfg)
 	}
@@ -44,7 +78,7 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 		p.rd.JSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	log.Infof("partition info: %+v", partition)
+	log.Infof("partition info: %+v", localPartition)
 	// first empty
 	for host := range configs {
 		err := emptyPartition(host)
@@ -65,15 +99,24 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 
 	state = State{
 		operation: StateNetworkPartition,
-		partition: *partition,
+		partition: localPartition,
 	}
 
+	partition = localPartition
+
+	logs.Items = append(logs.Items, Log{
+		Operation: OperationNetworkPartition,
+		Parameter: kind[0],
+		TimeStamp: time.Now().Unix(),
+	})
+
+	log.Debugf("logs %+v", logs)
 
 	p.rd.JSON(w, http.StatusOK, nil)
 }
 
 func (p *partitionHandler) GetNetworkPartiton(w http.ResponseWriter, r *http.Request) {
-
+	p.rd.JSON(w, http.StatusOK, partition)
 }
 
 func doNetworkPartition(host string, cfg *types.NetworkConfig) error {
