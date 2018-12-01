@@ -36,6 +36,7 @@ type Log struct {
 
 var state State
 var logs Logs
+var partition types.Partition
 
 // Manager is the operation manager.
 type Manager struct {
@@ -101,10 +102,10 @@ func (c *Manager) createRouter() *mux.Router {
 	evictLeaderHandler := newEvictLeaderHandler(c, rd)
 	logHandler := newLogHandler(c, rd)
 	stateHandler := newStateHandler(c, rd)
+	storeHandler := newStoreHandler(c, rd)
 
 	// failpoint route
 	router.HandleFunc("/failpoint", failpointHandler.CreateFailpoint).Methods("POST")
-	router.HandleFunc("/failpoint", failpointHandler.GetFailpoint).Methods("GET")
 
 	// network partition route
 	router.HandleFunc("/partition", partitionHandler.CreateNetworkPartition).Methods("POST")
@@ -121,6 +122,9 @@ func (c *Manager) createRouter() *mux.Router {
 
 	// state route
 	router.HandleFunc("/state", stateHandler.GetState).Methods("GET")
+
+	//store route
+	router.HandleFunc("/store", storeHandler.GetStores).Methods("GET")
 
 	return router
 }

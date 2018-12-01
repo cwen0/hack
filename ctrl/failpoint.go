@@ -34,10 +34,6 @@ func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (f *failpointHandler) GetFailpoint(w http.ResponseWriter, r *http.Request) {
-
-}
-
 type failpointCtl struct {
 	toplogic *types.Topological
 }

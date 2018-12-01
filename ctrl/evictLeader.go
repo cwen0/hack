@@ -82,36 +82,36 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 	return nil
 }
 
-func getStores(pdAddr string) (*types.StoresInfo, error) {
+func getStores(pdAddr string) (types.StoresInfo, error) {
 	apiURL := fmt.Sprintf("%s/%s", pdAddr, storesPrefix)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
-		return nil, err
+		return types.StoresInfo{}, err
 	}
 
 	storesInfo := types.StoresInfo{}
 	err = json.Unmarshal(body, &storesInfo)
 	if err != nil {
-		return nil, err
+		return types.StoresInfo{}, err
 	}
 
-	return &storesInfo, nil
+	return storesInfo, nil
 }
 
-func getStore(storeID uint64, pdAddr string) (*types.StoreInfo, error) {
+func getStore(storeID uint64, pdAddr string) (types.StoreInfo, error) {
 	apiURL := fmt.Sprintf("%s/%s/%d", pdAddr, storePrefix, storeID)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
-		return nil, err
+		return types.StoreInfo{}, err
 	}
 
 	storeInfo := types.StoreInfo{}
 	err = json.Unmarshal(body, &storeInfo)
 	if err != nil {
-		return nil, err
+		return types.StoreInfo{}, err
 	}
 
-	return &storeInfo, nil
+	return storeInfo, nil
 }
 
 func getLeaderEvictSchedulerInfo(storeID uint64) *types.SchedulerInfo {
