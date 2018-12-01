@@ -24,8 +24,14 @@ func newNetworkCtl(toplogic *types.Topological) *networkCtl {
 	return &networkCtl{toplogic: toplogic}
 }
 
-func (n *networkCtl) start(typ types.PartitionKind) error {
-	configs := network.GetProxyPartitionConfig(n.toplogic, typ)
+func (n *networkCtl) start(kind types.PartitionKind) error {
+	partition := &types.Partition{
+		Kind: kind,
+	}
+	configs,err := network.GetProxyPartitionConfig(n.toplogic, partition)
+	if err != nil {
+		return errors.Trace(err)
+	}
 	// first empty
 	for host := range configs {
 		err := emptyPartition(host)
