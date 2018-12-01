@@ -53,7 +53,11 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 
 	var storeID uint64
 	for _, store := range storesInfo.Stores {
-		if store.Store.Address == tikvIP {
+		storeIP,ok  := utils.Resolve(store.Store.Address)
+		if !ok {
+			return errors.Errorf("address %s can not convert to ip", store.Store.Address)
+		}
+		if storeIP == tikvIP {
 			storeID = store.Store.Id
 		}
 	}
