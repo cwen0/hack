@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ngaut/log"
-	"github.com/unrolled/render"
 	"math/rand"
 	"net/http"
 	"time"
@@ -13,14 +11,12 @@ import (
 	"github.com/zhouqiang-cl/hack/network"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
+	"github.com/ngaut/log"
+	"github.com/unrolled/render"
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
-}
-
-type networkCtl struct {
-	toplogic *types.Topological
 }
 
 type partitionHandler struct {
@@ -35,35 +31,26 @@ func newPartitionHandler(c *Manager, rd *render.Render) *partitionHandler {
 	}
 }
 
-func (f *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (f *partitionHandler) GetNetworkPartiton(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func newNetworkCtl(toplogic *types.Topological) *networkCtl {
-	return &networkCtl{toplogic: toplogic}
-}
-
-func (n *networkCtl) start(kind types.PartitionKind) error {
+func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
+	kind := r.URL.Query()["kind"][0]
 	partition := &types.Partition{
-		Kind: kind,
+		Kind: types.PartitionKind(kind),
 	}
-	configs, err := network.GetProxyPartitionConfig(n.toplogic, partition)
+	configs, err := network.GetProxyPartitionConfig(getToplogic(), partition)
 	for name, cfg := range configs {
 		log.Debugf("%s config is %+v", name, cfg)
 	}
 	if err != nil {
-		return errors.Trace(err)
+		p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 	log.Infof("partition info: %+v", partition)
 	// first empty
 	for host := range configs {
 		err := emptyPartition(host)
 		if err != nil {
-			return errors.Trace(err)
+			p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+			return
 		}
 	}
 
@@ -71,11 +58,22 @@ func (n *networkCtl) start(kind types.PartitionKind) error {
 	for host, cfg := range configs {
 		err := doNetworkPartition(host, cfg)
 		if err != nil {
-			return errors.Trace(err)
+			p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+			return
 		}
 	}
 
-	return nil
+	state = State{
+		operation: StateNetworkPartition,
+		partition: *partition,
+	}
+
+
+	p.rd.JSON(w, http.StatusOK, nil)
+}
+
+func (p *partitionHandler) GetNetworkPartiton(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func doNetworkPartition(host string, cfg *types.NetworkConfig) error {
