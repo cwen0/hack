@@ -59,7 +59,7 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 	}
 
 	leaderEvictInfo := getLeaderEvictSchedulerInfo(storeID)
-	apiURL := fmt.Sprintf("%s/%s", pdAddr, schedulersPrefix)
+	apiURL := fmt.Sprintf("http://%s/%s", pdAddr, schedulersPrefix)
 	data, err := json.Marshal(leaderEvictInfo)
 	if err != nil {
 		return err
