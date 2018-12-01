@@ -1,6 +1,8 @@
 package types
 
-import "time"
+import (
+	"time"
+)
 
 type StoreState int32
 
@@ -61,4 +63,34 @@ type StoresInfo struct {
 type SchedulerInfo struct {
 	Name    string `json:"name"`
 	StoreID uint64 `json:"store_id"`
+}
+
+type MembersInfo struct {
+	Header     *ResponseHeader `json:"header,omitempty"`
+	Members    []*Member       `json:"members,omitempty"`
+	Leader     *Member         `json:"leader,omitempty"`
+	EtcdLeader *Member         `json:"etcd_leader,omitempty"`
+}
+
+type ResponseHeader struct {
+	// cluster_id is the ID of the cluster which sent the response.
+	ClusterId uint64 `protobuf:"varint,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	Error     *Error `protobuf:"bytes,2,opt,name=error" json:"error,omitempty"`
+}
+
+type Member struct {
+	// name is the name of the PD member.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// member_id is the unique id of the PD member.
+	MemberId       uint64   `protobuf:"varint,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	PeerUrls       []string `protobuf:"bytes,3,rep,name=peer_urls,json=peerUrls" json:"peer_urls,omitempty"`
+	ClientUrls     []string `protobuf:"bytes,4,rep,name=client_urls,json=clientUrls" json:"client_urls,omitempty"`
+	LeaderPriority int32    `protobuf:"varint,5,opt,name=leader_priority,json=leaderPriority,proto3" json:"leader_priority,omitempty"`
+}
+
+type ErrorType int32
+
+type Error struct {
+	Type    ErrorType `protobuf:"varint,1,opt,name=type,proto3,enum=pdpb.ErrorType" json:"type,omitempty"`
+	Message string    `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 }
