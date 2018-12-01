@@ -63,10 +63,11 @@ func main() {
 			log.Fatalf("evict leader failed %+v", err)
 		}
 	case "topology":
-		err := ctrl.elCtrl.start(param)
+		topoInformation, err := ctrl.tpCtrl.start(param)
 		if err != nil {
 			log.Fatalf("topology failed %+v", err)
 		}
+		toplogic = topoInformation
 	}
 }
 
