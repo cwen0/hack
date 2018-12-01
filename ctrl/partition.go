@@ -98,7 +98,7 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 
 	partition = localPartition
 
-	logs.items = append(logs.items, Log{
+	logs.Items = append(logs.Items, Log{
 		operation: OperationNetworkPartition,
 		parameter: kind[0],
 		timeStamp: time.Now().Unix(),

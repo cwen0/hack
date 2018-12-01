@@ -29,7 +29,7 @@ type State struct {
 
 // Logs is logs
 type Logs struct {
-	items []Log
+	Items []Log
 }
 
 // Log is log
@@ -114,6 +114,7 @@ func (c *Manager) createRouter() *mux.Router {
 
 	// network partition route
 	router.HandleFunc("/partition", partitionHandler.CreateNetworkPartition).Methods("POST")
+	router.HandleFunc("/partition/clean", partitionHandler.CleanNetworkPartition).Methods("POST")
 	router.HandleFunc("/partition", partitionHandler.GetNetworkPartiton).Methods("GET")
 
 	// topology route

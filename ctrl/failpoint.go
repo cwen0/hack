@@ -68,7 +68,7 @@ func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Reques
 		partition: types.Partition{},
 	}
 
-	logs.items = append(logs.items, Log{
+	logs.Items = append(logs.Items, Log{
 		operation: OperationFailpoint,
 		parameter: fpType[0],
 		timeStamp: time.Now().Unix(),
