@@ -37,7 +37,7 @@ func newCtrl(toplogic *types.Topological) *Ctrl {
 		fpCtrl: newFailpointCtl(toplogic),
 		npCtrl: newNetworkCtl(toplogic),
 		elCtrl: newEvictLeaderCtl(PDADDR, TIMEOUT),
-		tpCtrl: newTopplogyCtl(PDADDR,TIMEOUT),
+		tpCtrl: newTopplogyCtl(PDADDR, TIMEOUT),
 	}
 }
 

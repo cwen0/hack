@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ngaut/log"
+	"github.com/unrolled/render"
 	"math/rand"
+	"net/http"
 	"time"
 
 	"github.com/juju/errors"
@@ -21,6 +23,26 @@ type networkCtl struct {
 	toplogic *types.Topological
 }
 
+type partitionHandler struct {
+	c  *Manager
+	rd *render.Render
+}
+
+func newPartitionHandler(c *Manager, rd *render.Render) *partitionHandler {
+	return &partitionHandler{
+		c:  c,
+		rd: rd,
+	}
+}
+
+func (f *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (f *partitionHandler) GetNetworkPartiton(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func newNetworkCtl(toplogic *types.Topological) *networkCtl {
 	return &networkCtl{toplogic: toplogic}
 }
@@ -31,7 +53,7 @@ func (n *networkCtl) start(kind types.PartitionKind) error {
 	}
 	configs, err := network.GetProxyPartitionConfig(n.toplogic, partition)
 	for name, cfg := range configs {
-		log.Debugf("%s config is %+v",name, cfg)
+		log.Debugf("%s config is %+v", name, cfg)
 	}
 	if err != nil {
 		return errors.Trace(err)

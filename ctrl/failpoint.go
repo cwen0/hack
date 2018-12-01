@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/unrolled/render"
 	"math/rand"
+	"net/http"
 	"time"
 
 	"github.com/juju/errors"
@@ -14,6 +16,26 @@ import (
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+}
+
+type failpointHandler struct {
+	c  *Manager
+	rd *render.Render
+}
+
+func newFailpointHandler(c *Manager, rd *render.Render) *failpointHandler {
+	return &failpointHandler{
+		c:  c,
+		rd: rd,
+	}
+}
+
+func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (f *failpointHandler) GetFailpoint(w http.ResponseWriter, r *http.Request) {
+
 }
 
 type failpointCtl struct {
