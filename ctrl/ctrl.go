@@ -13,18 +13,20 @@ var (
 )
 
 func init() {
-	flag.StringVar(&cmd, "cmd", "failpoint", "which command will use. now support failpoint/partition/record/replay, default is failpoint")
+	flag.StringVar(&cmd, "cmd", "failpoint", "which command will use. now support failpoint/partition/record/replay/config/distributary, default is failpoint")
 	flag.StringVar(&param, "param", "", "the param command will use")
 }
 
 // Ctrl is ctrl
 type Ctrl struct {
 	fpCtrl *failpointCtl
+	npCtrl *networkCtl
 }
 
 func newCtrl(toplogic *types.Topological) *Ctrl {
 	return &Ctrl{
 		fpCtrl: newFailpointCtl(toplogic),
+		npCtrl: newNetworkCtl(toplogic),
 	}
 }
 
@@ -38,6 +40,11 @@ func main() {
 		err := ctrl.fpCtrl.start(param)
 		if err != nil {
 			log.Fatal("failpoint failed %+v", err)
+		}
+	case "network":
+		err := ctrl.npCtrl.start(types.PartitionKind(param))
+		if err != nil {
+			log.Fatalf("network failed %+v", err)
 		}
 	}
 }
