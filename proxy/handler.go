@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"
+	// "google.golang.org/grpc/connectivity"
 )
 
 func init() {
@@ -66,6 +67,7 @@ func (p *ProxyHandler) handler(srv interface{}, serverStream grpc.ServerStream) 
 	log.Infof("full name %s", fullMethodName)
 	clientStream, err := grpc.NewClientStream(p.ctx, clientStreamDescForProxying, p.upstreamConn, fullMethodName)
 	if err != nil {
+		log.Errorf("failed to create client %+v, state is %v", err, p.upstreamConn.GetState())
 		return err
 	}
 
