@@ -1,4 +1,4 @@
-package cmd
+package cmdline
 
 import (
 	"flag"
@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&cmd, "cmd", "failpoint", "which command will use. now support failpoint/partition/record/replay/config/distributary, default is failpoint")
+	flag.StringVar(&cmd, "cmdline", "failpoint", "which command will use. now support failpoint/partition/record/replay/config/distributary, default is failpoint")
 	flag.StringVar(&param, "param", "", "the param command will use")
 }
 

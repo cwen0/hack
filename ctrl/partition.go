@@ -32,17 +32,21 @@ func newPartitionHandler(c *Manager, rd *render.Render) *partitionHandler {
 }
 
 func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
-	kind := r.URL.Query()["kind"][0]
-	partition := &types.Partition{
-		Kind: types.PartitionKind(kind),
+	kind := r.URL.Query()["kind"]
+	if len(kind) == 0 {
+		p.rd.JSON(w, http.StatusBadRequest, "miss parameter ip")
+		return
+	}
+	partition := types.Partition{
+		Kind: types.PartitionKind(kind[0]),
 	}
 	topology, err := getTopologyInfo(p.c.pdAddr)
 	if err != nil {
 		p.rd.JSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	
-	configs, err := network.GetProxyPartitionConfig(topology, partition)
+
+	configs, err := network.GetProxyPartitionConfig(&topology, &partition)
 	for name, cfg := range configs {
 		log.Debugf("%s config is %+v", name, cfg)
 	}
@@ -71,12 +75,14 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 
 	state = State{
 		operation: StateNetworkPartition,
-		partition: *partition,
+		partition: partition,
 	}
+
+	partition = partition
 
 	logs.items = append(logs.items, Log{
 		operation: OperationNetworkPartition,
-		parameter: kind,
+		parameter: kind[0],
 		timeStamp: time.Now().Unix(),
 	})
 
@@ -84,7 +90,7 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 }
 
 func (p *partitionHandler) GetNetworkPartiton(w http.ResponseWriter, r *http.Request) {
-
+	p.rd.JSON(w, http.StatusOK, partition)
 }
 
 func doNetworkPartition(host string, cfg *types.NetworkConfig) error {
