@@ -58,9 +58,9 @@ func getTopologyInfo(pdAddr string) (types.Topological, error) {
 	}
 
 	for _, store := range storesInfo.Stores {
-		tikvIP, err := utils.GetIP(store.Store.Address)
-		if err != nil {
-			return types.Topological{}, errors.Trace(err)
+		tikvIP, exist := utils.Resolve(store.Store.Address)
+		if  !exist {
+			return types.Topological{}, errors.Errorf("can not resolve %s", store.Store.Address)
 		}
 		topologyInfo.TiKV = append(topologyInfo.TiKV, tikvIP)
 	}
