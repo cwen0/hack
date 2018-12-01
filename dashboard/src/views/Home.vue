@@ -1,78 +1,84 @@
 <template>
     <!--<div :style="{ height: '300px'}" class="clusterChart" ref="clusterChart"></div>-->
     <div>
-        <el-row :gutter="20">
-            <el-col :span="14">
-                <!--<div class="grid-content bg-purple"></div>-->
-                <div class="clusterChart" id="clusterChart">
+        <div class="content">
+            <el-row :gutter="20">
+                <el-col :span="14">
+                    <!--<div class="grid-content bg-purple"></div>-->
+                    <div class="clusterChart" id="clusterChart">
+
+                    </div>
+                </el-col>
+                <el-col :span="10">
+                    <!--<div class="grid-content bg-purple"></div>-->
+                    <div class="forms">
+                        <h1>Controller</h1>
+                        <br>
+                        <el-form>
+                            <el-card class="box-card">
+                                <el-form-item label="Evict TiKV Leader: " prop="input tikv ip">
+                                    <el-input style="width: 200px" v-model="evictLeadrIP"></el-input>
+                                    <br>
+                                    <br>
+                                    <el-button @click="submitEvictTiKVLeader" type="primary">
+                                        Confirm
+                                    </el-button>
+                                </el-form-item>
+                            </el-card>
+                            <br>
+                            <el-card class="box-card">
+                                <el-form-item>
+                                    <span>Network partition:</span>
+                                    <br>
+                                    <el-radio-group v-model="partitionKind">
+                                        <el-radio label="full">Full Partition</el-radio>
+                                        <el-radio label="partial">Partial Partiton</el-radio>
+                                        <el-radio label="simplex">Simplex Partition</el-radio>
+                                        <el-radio label="clean">Clean</el-radio>
+                                    </el-radio-group>
+                                    <el-input placeholder="input tikv group ip" size="medium"
+                                              v-model="group1"></el-input>
+                                    <el-input placeholder="input tikv group ip" size="medium"
+                                              v-model="group2"></el-input>
+                                    <br>
+                                    <br>
+                                    <el-button @click="submitNetworkPartition" class="button-n" size="large"
+                                               type="primary">
+                                        Confirm To Exec Network
+                                        Partition
+                                    </el-button>
+                                </el-form-item>
+                            </el-card>
+                            <br>
+                            <el-card class="box-card">
+                                <el-form-item>
+                                    <span> Failpoint:</span>
+                                    <br>
+                                    <el-radio-group v-model="failpoint">
+                                        <el-radio label="random">Random</el-radio>
+                                        <el-radio label="certain">Certain</el-radio>
+                                        <el-radio label="clean">Clean</el-radio>
+                                    </el-radio-group>
+                                    <br>
+                                    <br>
+                                    <el-button @click="submitFailpoint" class="button-n" size="large" type="primary">
+                                        Confirm To Exec Failpoint
+                                    </el-button>
+                                </el-form-item>
+                            </el-card>
+                        </el-form>
+                    </div>
+                </el-col>
+            </el-row>
+            <!--<el-button @click="drawCluster" class="el-button">Cluster Info</el-button>-->
+            <div class="monitor">
+                <h1>TiDB Monitor</h1>
+                <br>
+                <div class="metrics" id="metricChart">
 
                 </div>
-            </el-col>
-            <el-col :span="10">
-                <!--<div class="grid-content bg-purple"></div>-->
-                <div class="forms">
-                    <h1>Controller</h1>
-                    <br>
-                    <el-form>
-                        <el-card class="box-card">
-                            <el-form-item label="Evict TiKV Leader: " prop="input tikv ip">
-                                <el-input style="width: 200px" v-model="evictLeadrIP"></el-input>
-                                <br>
-                                <br>
-                                <el-button @click="submitEvictTiKVLeader" type="primary">
-                                    Confirm
-                                </el-button>
-                            </el-form-item>
-                        </el-card>
-                        <br>
-                        <el-card class="box-card">
-                            <el-form-item>
-                                <span>Network partition:</span>
-                                <br>
-                                <el-radio-group v-model="partitionKind">
-                                    <el-radio label="full">Full Partition</el-radio>
-                                    <el-radio label="partial">Partial Partiton</el-radio>
-                                    <el-radio label="simplex">Simplex Partition</el-radio>
-                                    <el-radio label="clean">Clean</el-radio>
-                                </el-radio-group>
-                                <el-input placeholder="input tikv group ip" size="medium" v-model="group1"></el-input>
-                                <el-input placeholder="input tikv group ip" size="medium" v-model="group2"></el-input>
-                                <br>
-                                <br>
-                                <el-button @click="submitNetworkPartition" class="button-n" size="large" type="primary">
-                                    Confirm To Exec Network
-                                    Partition
-                                </el-button>
-                            </el-form-item>
-                        </el-card>
-                        <br>
-                        <el-card class="box-card">
-                            <el-form-item>
-                                <span> Failpoint:</span>
-                                <br>
-                                <el-radio-group v-model="failpoint">
-                                    <el-radio label="random">Random</el-radio>
-                                    <el-radio label="certain">Certain</el-radio>
-                                    <el-radio label="clean">Clean Failpoint</el-radio>
-                                </el-radio-group>
-                                <br>
-                                <br>
-                                <el-button @click="submitFailpoint" class="button-n" size="large" type="primary">
-                                    Confirm To Exec Failpoint
-                                </el-button>
-                            </el-form-item>
-                        </el-card>
-                    </el-form>
-                </div>
-            </el-col>
-        </el-row>
-        <!--<el-button @click="drawCluster" class="el-button">Cluster Info</el-button>-->
-        <div class="monitor">
-            <h1>TiDB Monitor</h1>
-            <br>
-            <div class="metrics" id="metricChart">
-
             </div>
+
         </div>
     </div>
 </template>
@@ -110,6 +116,11 @@
             this.getStoresInfo()
             this.drawMetric();
         },
+        beforeMount() {
+            var self = this;
+            setInterval(this.getStoresInfo, 10000);
+            setInterval(this.drawMetric, 10000);
+        },
         methods: {
             getStoresInfo() {
                 ajax.getStoresInfo().then(result => {
@@ -125,7 +136,6 @@
                             this.storesInfo.set(item.store.address, item.status.leader_count);
                         })
                     }
-                    console.log(this.storesInfo);
                     this.drawCluster()
                 }).catch(resp => {
                     this.$notify.error({
@@ -151,7 +161,6 @@
                         var startAngle = 270;
                         var r = 250;
                         var datas = []
-                        console.log(this.storesInfo);
                         this.clusterInfo.tikv.forEach((tikv, index) => {
                             var angle = startAngle + increment * index;
                             var rads = angle * Math.PI / 180;
@@ -167,7 +176,6 @@
                                 this.partition = result.data
                             }
 
-                            console.log(result.data);
                             var links = [];
                             if (this.partition.real_groups.length <= 1) {
                                 this.clusterInfo.tikv.forEach((tikv, index) => {
@@ -497,7 +505,7 @@
                 ajax.getDuration(metric, timeFrom, timeTo).then(result => {
                     var time = []
                     var value = []
-                    console.log(result.data.data.result[0])
+                    // console.log(result.data.data.result[0])
                     result.data.data.result[0].values.forEach((e, index) => {
                         var date = new Date(e[0] * 1000);
                         // Hours part from the timestamp
@@ -614,17 +622,22 @@
 </script>
 
 <style scoped>
+    .content {
+        width: 95%;
+    }
     .clusterChart {
+        padding-left: 4em;
         width: 80em;
         height: 60em;
     }
 
     .monitor {
+        padding-left: 4em;
         padding-top: 12em;
     }
 
     .metrics {
-        width: 80em;
+        width: 120em;
         height: 50em;
     }
 
