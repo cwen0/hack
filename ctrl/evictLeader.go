@@ -83,7 +83,7 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 }
 
 func getStores(pdAddr string) (types.StoresInfo, error) {
-	apiURL := fmt.Sprintf("%s/%s", pdAddr, storesPrefix)
+	apiURL := fmt.Sprintf("http://%s/%s", pdAddr, storesPrefix)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
 		return types.StoresInfo{}, err
