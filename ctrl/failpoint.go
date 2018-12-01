@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+
+	"github.com/ngaut/log"
 	"github.com/juju/errors"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
@@ -37,8 +39,11 @@ func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Reques
 	}
 	switch fpType[0] {
 	case "random":
+		log.Debugf("clean failpoint")
 		cleanFailpoint(f.c.pdAddr)
+		log.Debugf("clean failpoint finished")
 		err := doRandomFailpoint(f.c.pdAddr)
+		log.Debugf("do random failpoint")
 		if err != nil {
 			f.rd.JSON(w, http.StatusInternalServerError, err.Error())
 			return
@@ -105,12 +110,12 @@ func doCertainFailpoint(pdAddr string) error {
 	// rule := "pct(5)->delay(100)|pct(1)->timeout()"
 	topology, err := getTopologyInfo(pdAddr)
 	if err != nil {
-		return err
+		return errors.Trace(err)
 	}
 	for _, kv := range topology.TiKV {
 		err := doFailpoints(kv, getAllPath())
 		if err != nil {
-			return err
+			return errors.Trace(err)
 		}
 	}
 	return nil
@@ -123,7 +128,7 @@ func getRandomTiKVs(pdAddr string) ([]string, error) {
 
 	topology, err := getTopologyInfo(pdAddr)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	leftTiKVs := make([]string, len(topology.TiKV))
