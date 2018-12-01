@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
+	"github.com/juju/errors"
 	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
-	"net/http"
 )
 
 var membersPrefix = "pd/api/v1/members"
