@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 
 	"github.com/juju/errors"
 	"github.com/ngaut/log"
 	"github.com/zhouqiang-cl/hack/utils"
+	"github.com/zhouqiang-cl/hack/types"
 )
 
 var (
@@ -44,9 +46,26 @@ func main() {
 		}
 	case "topology":
 		url := fmt.Sprintf("http://%s/operation/topology", managerAddr)
-		_, err := utils.DoGet(url)
+		data, err := utils.DoGet(url)
 		if err != nil {
 			log.Fatalf("get topology failed %+v", errors.ErrorStack(err))
+		}
+		top := &types.Topological{}
+		err = json.Unmarshal(data, top)
+		if err != nil {
+			log.Fatalf("unmarshal topology failed %+v", errors.ErrorStack(err))
+		}
+
+		for _, ip := range top.PD{
+			log.Infof("pd: %v", ip)
+		}
+
+		for _, ip := range top.TiKV{
+			log.Infof("tikv: %v", ip)
+		}
+
+		for _, ip := range top.TiDB{
+			log.Infof("tidb: %v", ip)
 		}
 	}
 }
