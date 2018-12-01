@@ -61,9 +61,15 @@ func getAllPath() []string {
 	return []string{
 		"/tikvpb.Tikv/Coprocessor",
 		"/tikvpb.Tikv/KvBatchGet",
+		"/tikvpb.Tikv/KvBatchRollback",
+		"/tikvpb.Tikv/KvCleanup",
 		"/tikvpb.Tikv/KvCommit",
 		"/tikvpb.Tikv/KvGet",
+		"/tikvpb.Tikv/KvGC",
 		"/tikvpb.Tikv/KvPrewrite",
+		"/tikvpb.Tikv/KvResolveLock",
+		"/tikvpb.Tikv/Raft",
+		"/tikvpb.Tikv/SplitRegion",
 		"/tikvpb.Tikv/KvScanLock",
 	}
 }
