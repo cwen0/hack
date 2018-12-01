@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/juju/errors"
 	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/types"
@@ -30,13 +31,9 @@ func newEvictLeaderHandler(c *Manager, rd *render.Render) *evictLeaderHandler {
 }
 
 func (e *evictLeaderHandler) EvictLeader(w http.ResponseWriter, r *http.Request) {
-	tikvIP := r.URL.Query()["ip"]
-	if len(tikvIP) == 0 {
-		e.rd.JSON(w, http.StatusBadRequest, "miss parameter ip")
-		return
-	}
+	tikvIP := mux.Vars(r)["ip"]
 
-	err := doEvictLeader(tikvIP[0], e.c.pdAddr)
+	err := doEvictLeader(tikvIP, e.c.pdAddr)
 	if err != nil {
 		e.rd.JSON(w, http.StatusInternalServerError, err.Error())
 		return

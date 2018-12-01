@@ -56,13 +56,14 @@ func (p *partitionHandler) CleanNetworkPartition(w http.ResponseWriter, r *http.
 }
 
 func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
-	kind := r.URL.Query()["kind"]
-	if len(kind) == 0 {
-		p.rd.JSON(w, http.StatusBadRequest, "miss parameter ip")
+	fp := &types.PartitionFe{}
+	err := readJSON(r.Body, fp)
+	if err != nil {
+		p.rd.JSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	localPartition := types.Partition{
-		Kind: types.PartitionKind(kind[0]),
+		Kind: types.PartitionKind(fp.PartitionKind),
 	}
 	topology, err := getTopologyInfo(p.c.pdAddr)
 	if err != nil {
@@ -106,7 +107,7 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 
 	logs.Items = append(logs.Items, Log{
 		Operation: OperationNetworkPartition,
-		Parameter: kind[0],
+		Parameter: fp.PartitionKind,
 		TimeStamp: time.Now().Unix(),
 	})
 

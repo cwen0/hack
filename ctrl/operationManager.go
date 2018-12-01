@@ -121,7 +121,7 @@ func (c *Manager) createRouter() *mux.Router {
 	router.HandleFunc("/topology", topologyHandler.GetTopology).Methods("GET")
 
 	// evict leader route
-	router.HandleFunc("/evictleader", evictLeaderHandler.EvictLeader).Methods("POST")
+	router.HandleFunc("/evictleader/{ip}", evictLeaderHandler.EvictLeader).Methods("POST")
 
 	// log route
 	router.HandleFunc("/log", logHandler.GetLogs).Methods("GET")

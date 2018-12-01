@@ -21,3 +21,9 @@ type Partition struct {
 type Group struct {
 	Hosts []string `json:"hosts"`
 }
+
+// PartitionFe is PartitionFe
+type PartitionFe struct {
+	PartitionKind string `json:"partition_kind"`
+	Groups []Group `json:"groups"`
+}
