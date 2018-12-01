@@ -1,13 +1,13 @@
 package main
 
 import (
-	"time"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/ngaut/log"
 	"github.com/juju/errors"
+	"github.com/ngaut/log"
 	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
@@ -55,7 +55,7 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 
 	var storeID uint64
 	for _, store := range storesInfo.Stores {
-		storeIP,ok  := utils.Resolve(store.Store.Address)
+		storeIP, ok := utils.Resolve(store.Store.Address)
 		if !ok {
 			return errors.Errorf("address %s can not convert to ip", store.Store.Address)
 		}
@@ -81,7 +81,7 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 		if err != nil {
 			return err
 		}
-		time.Sleep(3*time.Second)
+		time.Sleep(3 * time.Second)
 		log.Debugf("leader count %d", storeInfo.Status.LeaderCount)
 		if storeInfo.Status.LeaderCount == 0 {
 			break
