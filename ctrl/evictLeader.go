@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/unrolled/render"
 	"io"
 	"net/http"
 	"time"
@@ -17,16 +18,26 @@ import (
 //}
 
 var (
-	healthPrefix           = "pd/health"
-	membersPrefix          = "pd/api/v1/members"
-	storesPrefix           = "pd/api/v1/stores"
-	storePrefix            = "pd/api/v1/store"
-	configPrefix           = "pd/api/v1/config"
-	clusterIDPrefix        = "pd/api/v1/cluster"
-	schedulersPrefix       = "pd/api/v1/schedulers"
-	pdLeaderPrefix         = "pd/api/v1/leader"
-	pdLeaderTransferPrefix = "pd/api/v1/leader/transfer"
+	storesPrefix     = "pd/api/v1/stores"
+	storePrefix      = "pd/api/v1/store"
+	schedulersPrefix = "pd/api/v1/schedulers"
 )
+
+type evictLeaderHandler struct {
+	c  *Manager
+	rd *render.Render
+}
+
+func newEvictLeaderHandler(c *Manager, rd *render.Render) *evictLeaderHandler {
+	return &evictLeaderHandler{
+		c:  c,
+		rd: rd,
+	}
+}
+
+func (f *evictLeaderHandler) EvictLeader(w http.ResponseWriter, r *http.Request) {
+
+}
 
 type evictLeaderCtl struct {
 	url        string
