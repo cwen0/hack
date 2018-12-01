@@ -5,7 +5,7 @@
         <div id="clusterChart" style="width: 600px;height:400px;">
 
         </div>
-        <el-button @click="drawCluster" class="el-button">Cluster Info</el-button>
+        <!--<el-button @click="drawCluster" class="el-button">Cluster Info</el-button>-->
     </div>
 </template>
 
@@ -18,6 +18,9 @@
             // this.drawCluster();
         },
         updated() {
+        },
+        mounted() {
+            this.drawCluster();
         },
         methods: {
             drawCluster() {
