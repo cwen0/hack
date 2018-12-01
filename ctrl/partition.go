@@ -28,7 +28,7 @@ func (n *networkCtl) start(kind types.PartitionKind) error {
 	partition := &types.Partition{
 		Kind: kind,
 	}
-	configs,err := network.GetProxyPartitionConfig(n.toplogic, partition)
+	configs, err := network.GetProxyPartitionConfig(n.toplogic, partition)
 	if err != nil {
 		return errors.Trace(err)
 	}
