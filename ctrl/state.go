@@ -18,5 +18,5 @@ func newStateHandler(c *Manager, rd *render.Render) *stateHandler {
 }
 
 func (f *stateHandler) GetState(w http.ResponseWriter, r *http.Request) {
-
+	f.rd.JSON(w, http.StatusOK, state)
 }

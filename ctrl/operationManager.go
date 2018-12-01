@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/zhouqiang-cl/hack/types"
 	"net/http"
 	"sync"
 	"time"
@@ -9,15 +10,21 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
-	"github.com/zhouqiang-cl/hack/types"
 )
 
-// APIPrefix is api prefix
-const APIPrefix = "/operation"
+const (
+	APIPrefix             = "/operation"
+	StateNetworkPartition = "network_partition"
+	StateFailpoint        = "failpoint"
+)
 
 type State struct {
 	operation string
 	partition types.Partition
+}
+
+type Logs struct {
+	logs []Log
 }
 
 type Log struct {
@@ -26,17 +33,22 @@ type Log struct {
 	time      string
 }
 
+var state State
+var logs Logs
+
 // Manager is the operation manager.
 type Manager struct {
 	sync.RWMutex
-	addr string
-	s    *http.Server
+	addr   string
+	pdAddr string
+	s      *http.Server
 }
 
 // NewManager creates the node with given address
-func NewManager(addr string) *Manager {
+func NewManager(addr, pdAddr string) *Manager {
 	n := &Manager{
-		addr: addr,
+		addr:   addr,
+		pdAddr: pdAddr,
 	}
 
 	return n
