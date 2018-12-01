@@ -17,6 +17,7 @@ const (
 	StateNetworkPartition     = "network_partition"
 	StateFailpoint            = "failpoint"
 	OperationNetworkPartition = "network_partition"
+	OperationFailpoint        = "failpoint"
 )
 
 type State struct {
