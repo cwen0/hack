@@ -5,8 +5,12 @@
 
         </div>
         <!--<el-button @click="drawCluster" class="el-button">Cluster Info</el-button>-->
-        <div id="metricChart" style="width: 600px;height:400px;">
+        <div class="monitor">
+            <h1>TiDB Monitor</h1>
+            <br>
+            <div class="metrics" id="metricChart">
 
+            </div>
         </div>
     </div>
 </template>
@@ -56,8 +60,8 @@
                             var rads = angle * Math.PI / 180;
                             datas.push({
                                 name: "tikv:" + tikv,
-                                x: Math.trunc(500 + r * Math.cos(rads)),
-                                y: Math.trunc(500 + r * Math.sin(rads)),
+                                x: Math.trunc(600 + r * Math.cos(rads)),
+                                y: Math.trunc(600 + r * Math.sin(rads)),
                             })
                         })
 
@@ -269,7 +273,7 @@
 
                             var option = {
                                 title: {
-                                    text: 'TiDB Cluster Info'
+                                    text: 'TiDB Cluster Topology'
                                 },
                                 tooltip: {},
                                 animationDurationUpdate: 1500,
@@ -429,7 +433,16 @@
 
 <style scoped>
     .clusterChart {
-        width: 100em;
+        width: 80em;
         height: 60em;
+    }
+
+    .monitor {
+        padding-top: 12em;
+    }
+
+    .metrics {
+        width: 80em;
+        height: 50em;
     }
 </style>
