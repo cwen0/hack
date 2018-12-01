@@ -51,9 +51,9 @@ func main() {
 
 func getToplogic() *types.Topological {
 	return &types.Topological{
-		PD:   []string{"127.0.0.1"},
-		TiDB: []string{"127.0.0.1", "127.0.0.2"},
-		TiKV: []string{"127.0.0.1", "127.0.0.2", "127.0.0.3"},
+		PD:   []string{"10.128.31.5"},
+		TiDB: []string{"10.128.29.197"},
+		TiKV: []string{"10.128.31.56", "10.128.31.62", "10.128.31.51"},
 	}
 }
 
