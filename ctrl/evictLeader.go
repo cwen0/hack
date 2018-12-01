@@ -100,7 +100,7 @@ func getStores(pdAddr string) (types.StoresInfo, error) {
 }
 
 func getStore(storeID uint64, pdAddr string) (types.StoreInfo, error) {
-	apiURL := fmt.Sprintf("%s/%s/%d", pdAddr, storePrefix, storeID)
+	apiURL := fmt.Sprintf("http://%s/%s/%d", pdAddr, storePrefix, storeID)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
 		return types.StoreInfo{}, errors.Trace(err)

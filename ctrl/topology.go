@@ -35,7 +35,7 @@ func (t *topologyHandler) GetTopology(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMembers(pdAddr string) (types.MembersInfo, error) {
-	apiURL := fmt.Sprintf("%s/%s", pdAddr, membersPrefix)
+	apiURL := fmt.Sprintf("http://%s/%s", pdAddr, membersPrefix)
 	body, err := utils.DoGet(apiURL)
 	if err != nil {
 		return types.MembersInfo{}, err
