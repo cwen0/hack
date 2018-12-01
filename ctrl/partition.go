@@ -104,6 +104,8 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 		timeStamp: time.Now().Unix(),
 	})
 
+	log.Debugf("logs %+v", logs)
+
 	p.rd.JSON(w, http.StatusOK, nil)
 }
 
