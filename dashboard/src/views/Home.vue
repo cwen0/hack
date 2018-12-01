@@ -602,7 +602,7 @@
             },
             submitFailpoint() {
                 this.ajax.setFailpoint({
-                    "failpoint": this.failpoint,
+                    "type": this.failpoint,
                 }).then(result => {
                     this.$notify({
                         title: 'Success',
