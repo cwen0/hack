@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"time"
 
 	"github.com/ngaut/log"
 	"github.com/zhouqiang-cl/hack/types"
@@ -10,6 +11,10 @@ import (
 var (
 	cmd   string
 	param string
+)
+const (
+	PD_ADDR = "127.0.0.1:32800"
+	TIMEOUT = 5 * time.Second
 )
 
 func init() {
@@ -21,12 +26,14 @@ func init() {
 type Ctrl struct {
 	fpCtrl *failpointCtl
 	npCtrl *networkCtl
+	elCtrl *evictLeaderCtl
 }
 
 func newCtrl(toplogic *types.Topological) *Ctrl {
 	return &Ctrl{
 		fpCtrl: newFailpointCtl(toplogic),
 		npCtrl: newNetworkCtl(toplogic),
+		elCtrl: newEvictLeaderCtl(PD_ADDR,TIMEOUT),
 	}
 }
 
@@ -45,6 +52,11 @@ func main() {
 		err := ctrl.npCtrl.start(types.PartitionKind(param))
 		if err != nil {
 			log.Fatalf("network failed %+v", err)
+		}
+	case "evict_leader":
+		err := ctrl.elCtrl.start(param)
+		if err != nil {
+			log.Fatalf("evict leader failed %+v", err)
 		}
 	}
 }
