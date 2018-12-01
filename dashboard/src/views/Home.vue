@@ -1,9 +1,71 @@
 <template>
     <!--<div :style="{ height: '300px'}" class="clusterChart" ref="clusterChart"></div>-->
     <div>
-        <div class="clusterChart" id="clusterChart">
+        <el-row :gutter="20">
+            <el-col :span="14">
+                <!--<div class="grid-content bg-purple"></div>-->
+                <div class="clusterChart" id="clusterChart">
 
-        </div>
+                </div>
+            </el-col>
+            <el-col :span="10">
+                <!--<div class="grid-content bg-purple"></div>-->
+                <div class="forms">
+                    <h1>Controller</h1>
+                    <br>
+                    <el-form>
+                        <el-card class="box-card">
+                            <el-form-item label="Evict TiKV Leader: " prop="input tikv ip">
+                                <el-input style="width: 200px" v-model="evictLeadrIP"></el-input>
+                                <br>
+                                <br>
+                                <el-button @click="submitEvictTiKVLeader" type="primary">
+                                    Confirm
+                                </el-button>
+                            </el-form-item>
+                        </el-card>
+                        <br>
+                        <el-card class="box-card">
+                            <el-form-item>
+                                <span>Network partition:</span>
+                                <br>
+                                <el-radio-group v-model="partitionKind">
+                                    <el-radio label="full">Full Partition</el-radio>
+                                    <el-radio label="partial">Partial Partiton</el-radio>
+                                    <el-radio label="simplex">Simplex Partition</el-radio>
+                                    <el-radio label="clean">Clean</el-radio>
+                                </el-radio-group>
+                                <el-input placeholder="input tikv group ip" size="medium" v-model="group1"></el-input>
+                                <el-input placeholder="input tikv group ip" size="medium" v-model="group2"></el-input>
+                                <br>
+                                <br>
+                                <el-button @click="submitNetworkPartition" class="button-n" size="large" type="primary">
+                                    Confirm To Exec Network
+                                    Partition
+                                </el-button>
+                            </el-form-item>
+                        </el-card>
+                        <br>
+                        <el-card class="box-card">
+                            <el-form-item>
+                                <span> Failpoint:</span>
+                                <br>
+                                <el-radio-group v-model="failpoint">
+                                    <el-radio label="random">Random</el-radio>
+                                    <el-radio label="certain">Certain</el-radio>
+                                    <el-radio label="clean">Clean Failpoint</el-radio>
+                                </el-radio-group>
+                                <br>
+                                <br>
+                                <el-button @click="submitFailpoint" class="button-n" size="large" type="primary">
+                                    Confirm To Exec Failpoint
+                                </el-button>
+                            </el-form-item>
+                        </el-card>
+                    </el-form>
+                </div>
+            </el-col>
+        </el-row>
         <!--<el-button @click="drawCluster" class="el-button">Cluster Info</el-button>-->
         <div class="monitor">
             <h1>TiDB Monitor</h1>
@@ -21,6 +83,11 @@
     export default {
         data() {
             return {
+                failpoint: '',
+                evictLeadrIP: '',
+                partitionKind: 'full',
+                group1: '',
+                group2: '',
                 clusterInfo: {
                     tidb: [],
                     tikv: [],
@@ -53,9 +120,9 @@
                             duration: 0
                         })
                     } else {
-                        var infos = result.data
+                        var infos = result.data.stores;
                         infos.forEach(item => {
-                            this.storesInfo.set(item.ip, item.leader_count);
+                            this.storesInfo.set(item.store.address, item.status.leader_count);
                         })
                     }
                     console.log(this.storesInfo);
@@ -122,7 +189,7 @@
                                     case "full":
                                         this.partition.real_groups.forEach(item => {
                                             item.forEach((h, index) => {
-                                                console.log(this.storesInfo.get(h))
+                                                // console.log(this.storesInfo.get(h))
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
                                                         source: this.genST(h, this.storesInfo.get(h)),
@@ -461,6 +528,86 @@
                 var startTimestamp = start.getTime() / 1000
                 var endTimestamp = end.getTime() / 1000
                 var option = this.drawData("Duration", "tidb_server_handle_query_duration_seconds_bucket", startTimestamp, endTimestamp, "metricChart")
+            },
+
+            submitEvictTiKVLeader() {
+                ajax.setevictTikvLeader(this.evictLeadrIP).then(result => {
+                    this.$notify({
+                        title: 'Success',
+                        type: 'success',
+                        message: 'Evict tikv ' + this.evictLeadrIP + ' leaders Successfully'
+                    })
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
+            },
+
+            submitNetworkPartition() {
+                if (this.partitionKind === "clean") {
+                    ajax.cleanNetworkPartition().then(result => {
+                        this.$notify({
+                            title: 'Success',
+                            type: 'success',
+                            message: 'clean network partition'
+                        })
+                    }).then(resp => {
+                        this.$notify.error({
+                            title: 'ERROR',
+                            message: resp.message,
+                            duration: 0
+                        })
+                    })
+                    return
+                }
+
+                let groups = [];
+                if (this.group1 != null && this.group1.trim() != null) {
+                    let gs = this.group1.split(",")
+                    groups.push(gs)
+                }
+
+                if (this.group2 != null && this.group2.trim() != null) {
+                    let gs = this.group2.split(",")
+                    groups.push(gs)
+                }
+
+                this.ajax.setNetworkPartition({
+                    "partition_kind": this.partition_kind,
+                    "groups": groups,
+                }).then(result => {
+                    this.$notify({
+                        title: 'Success',
+                        type: 'success',
+                        message: 'start to inject network partition'
+                    })
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
+            },
+            submitFailpoint() {
+                this.ajax.setFailpoint({
+                    "failpoint": this.failpoint,
+                }).then(result => {
+                    this.$notify({
+                        title: 'Success',
+                        type: 'success',
+                        message: 'start to inject failpoint'
+                    })
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
             }
         }
     }
@@ -479,5 +626,13 @@
     .metrics {
         width: 80em;
         height: 50em;
+    }
+
+    .forms {
+        padding-top: 3em;
+    }
+
+    .button-n {
+        width: 200px,
     }
 </style>
