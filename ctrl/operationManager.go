@@ -12,6 +12,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// prefix
 const (
 	APIPrefix                 = "/operation"
 	StateNetworkPartition     = "network_partition"
