@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -80,6 +81,7 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 		if err != nil {
 			return err
 		}
+		time.Sleep(3*time.Second)
 		log.Debugf("leader count %d", storeInfo.Status.LeaderCount)
 		if storeInfo.Status.LeaderCount == 0 {
 			break
