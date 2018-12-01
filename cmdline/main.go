@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/ngaut/log"
 	"github.com/juju/errors"
+	"github.com/ngaut/log"
 	"github.com/zhouqiang-cl/hack/utils"
 )
 
@@ -28,7 +28,7 @@ func main() {
 		url := fmt.Sprintf("http://%s/operation/failpoint?type=%s", managerAddr, param)
 		_, err := utils.DoPost(url, []byte{})
 		if err != nil {
-			log.Fatal("failpoint failed %+v",errors.ErrorStack(err))
+			log.Fatal("failpoint failed %+v", errors.ErrorStack(err))
 		}
 	case "network":
 		url := fmt.Sprintf("http://%s/operation/partition?kind=%s", managerAddr, param)

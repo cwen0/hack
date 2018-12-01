@@ -7,13 +7,15 @@ import (
 )
 
 var (
-	addr   string
-	pdAddr string
+	addr     string
+	pdAddr   string
+	tidbAddr string
 )
 
 func init() {
 	flag.StringVar(&addr, "addr", "127.0.0.1:10009", "operation manager address")
 	flag.StringVar(&pdAddr, "pd-addr", "", "pd address")
+	flag.StringVar(&tidbAddr, "tidb-addr", "10.128.29.197", "pd address")
 }
 
 func main() {

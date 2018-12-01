@@ -21,15 +21,18 @@ const (
 	OperationFailpoint        = "failpoint"
 )
 
+// State is state
 type State struct {
 	operation string
 	partition types.Partition
 }
 
+// Logs is logs
 type Logs struct {
 	items []Log
 }
 
+// Log is log
 type Log struct {
 	operation string
 	parameter string

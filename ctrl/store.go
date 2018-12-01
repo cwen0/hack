@@ -28,17 +28,15 @@ func (s *storeHandler) GetStores(w http.ResponseWriter, r *http.Request) {
 	if len(tikvIP) == 0 {
 		s.rd.JSON(w, http.StatusOK, storesInfo)
 		return
-	} else {
-		leaderCnt := 0
-		for _, store := range storesInfo.Stores {
-			if store.Store.Address == tikvIP[0] {
-				leaderCnt = store.Status.LeaderCount
-			}
-		}
-		s.rd.JSON(w, http.StatusOK, leaderCnt)
-		return
 	}
-
+	leaderCnt := 0
+	for _, store := range storesInfo.Stores {
+		if store.Store.Address == tikvIP[0] {
+			leaderCnt = store.Status.LeaderCount
+		}
+	}
+	s.rd.JSON(w, http.StatusOK, leaderCnt)
+	return
 
 }
 

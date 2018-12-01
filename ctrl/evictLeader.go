@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/juju/errors"
+	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
-	"github.com/unrolled/render"
-	"github.com/juju/errors"
 )
 
 var (
@@ -47,7 +47,7 @@ func (e *evictLeaderHandler) EvictLeader(w http.ResponseWriter, r *http.Request)
 
 func doEvictLeader(tikvIP, pdAddr string) error {
 	storesInfo, err := getStores(pdAddr)
-	if err!= nil {
+	if err != nil {
 		return errors.Trace(err)
 	}
 

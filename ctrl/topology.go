@@ -56,17 +56,21 @@ func getTopologyInfo(pdAddr string) (types.Topological, error) {
 	if err != nil {
 		return types.Topological{}, errors.Trace(err)
 	}
-	membersInfo, err := getMembers(pdAddr)
+
+	for _, store := range storesInfo.Stores {
+		tikvIP, err := utils.GetIP(store.Store.Address)
+		if err != nil {
+			return types.Topological{}, errors.Trace(err)
+		}
+		topologyInfo.TiKV = append(topologyInfo.TiKV, tikvIP)
+	}
+
+	ip, err := utils.GetIP(pdAddr)
 	if err != nil {
 		return types.Topological{}, errors.Trace(err)
 	}
-
-	for _, store := range storesInfo.Stores {
-		topologyInfo.TiKV = append(topologyInfo.TiKV, store.Store.Address)
-	}
-	for _, member := range membersInfo.Members {
-		topologyInfo.PD = append(topologyInfo.PD, member.Name)
-	}
+	topologyInfo.PD = []string{ip}
+	topologyInfo.TiDB = []string{tidbAddr}
 
 	return topologyInfo, nil
 }
