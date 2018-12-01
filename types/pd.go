@@ -94,8 +94,3 @@ type Error struct {
 	Type    ErrorType `protobuf:"varint,1,opt,name=type,proto3,enum=pdpb.ErrorType" json:"type,omitempty"`
 	Message string    `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 }
-
-type TopologyInfo struct {
-	StoresInfo *StoresInfo
-	MembersInfo *MembersInfo
-}

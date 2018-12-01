@@ -34,8 +34,9 @@ func (f *topologyHandler) GetTopology(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (e *topology) start() error {
-	return errors.Trace(e.doTopology())
+func (e *topology) start(tikvIP string) (*types.Topological, error) {
+	topo, err := e.doTopology()
+	return topo ,errors.Trace(err)
 }
 
 func newTopplogyCtl(url string, timeout time.Duration) *topology {
@@ -77,20 +78,26 @@ func (e *topology) getMembers() (*types.MembersInfo, error) {
 	return &membersInfo, nil
 }
 
-func (e *topology) doTopology() (error) {
-	for {
-		_, err := e.getTopologyInfo()
-		if err != nil {
-			return err
-		}
+func (e *topology) doTopology() (*types.Topological, error) {
+	var topoInfo *types.Topological
+	topoInfo, err := e.getTopologyInfo()
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	return topoInfo, nil
 }
 
-func (e *topology) getTopologyInfo() (*types.TopologyInfo, error) {
+
+func (e *topology)getTopologyInfo() (*types.Topological, error){
+	var topologyInfo *types.Topological
 	storesInfo, _ := e.getStores()
 	membersInfo, _ := e.getMembers()
-	topoInfo := types.TopologyInfo{StoresInfo: storesInfo, MembersInfo: membersInfo}
-	return &topoInfo, nil
+
+	for _, store := range storesInfo.Stores {
+		topologyInfo.TiKV = append(topologyInfo.TiKV, store.Store.Address)
+	}
+	for _, member := range membersInfo.Members{
+		topologyInfo.PD = append(topologyInfo.PD, member.Name)
+	}
+	return topologyInfo, nil
 }
