@@ -117,9 +117,9 @@
             this.drawMetric();
         },
         beforeMount() {
-            var self = this;
-            setInterval(this.getStoresInfo, 10000);
-            setInterval(this.drawMetric, 10000);
+            // var self = this;
+            // setInterval(this.getStoresInfo, 10000);
+            // setInterval(this.drawMetric, 10000);
         },
         methods: {
             getStoresInfo() {
@@ -135,6 +135,8 @@
                         infos.forEach(item => {
                             this.storesInfo.set(item.store.address, item.status.leader_count);
                         })
+                        console.log(infos)
+                        console.log(this.storesInfo)
                     }
                     this.drawCluster()
                 }).catch(resp => {
@@ -152,6 +154,7 @@
 
             drawCluster() {
                 ajax.getClusterInfo().then(result => {
+                    console.log(result)
                     if (result.data != null) {
                         this.clusterInfo = result.data;
 
@@ -177,7 +180,7 @@
                             }
 
                             var links = [];
-                            if (this.partition.real_groups.length <= 1) {
+                            if (this.partition.real_groups == null || this.partition.real_groups.length <= 1) {
                                 this.clusterInfo.tikv.forEach((tikv, index) => {
                                     for (var i = 0; i < index; i++) {
                                         links.push({
