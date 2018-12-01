@@ -71,6 +71,12 @@ func (p *ProxyHandler) handler(srv interface{}, serverStream grpc.ServerStream) 
 		return err
 	}
 
+	pe, ok := peer.FromContext(serverStream.Context())
+	if !ok {
+		log.Error("get peer failed")
+	}
+	log.Debugf("perr addr: %s", pe.Addr.String())
+
 	s2cErrChan := p.forwardServerToClient(serverStream, clientStream)
 	c2sErrChan := p.forwardClientToServer(clientStream, serverStream)
 
@@ -268,7 +274,7 @@ func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.Cli
 }
 
 func (p *ProxyHandler) processEgressNetwork(index int, src grpc.ClientStream, dst grpc.ServerStream, cfg *types.NetworkConfig) error {
-	pe, ok := peer.FromContext(src.Context())
+	pe, ok := peer.FromContext(dst.Context())
 	if !ok {
 		log.Error("get peer failed")
 	}
