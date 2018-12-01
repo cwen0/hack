@@ -18,5 +18,5 @@ func newLogHandler(c *Manager, rd *render.Render) *logHandler {
 }
 
 func (f *logHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
-
+	f.rd.JSON(w, http.StatusOK, logs)
 }

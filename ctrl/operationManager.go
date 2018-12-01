@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	APIPrefix             = "/operation"
-	StateNetworkPartition = "network_partition"
-	StateFailpoint        = "failpoint"
+	APIPrefix                 = "/operation"
+	StateNetworkPartition     = "network_partition"
+	StateFailpoint            = "failpoint"
+	OperationNetworkPartition = "network_partition"
 )
 
 type State struct {
@@ -24,13 +25,13 @@ type State struct {
 }
 
 type Logs struct {
-	logs []Log
+	items []Log
 }
 
 type Log struct {
 	operation string
 	parameter string
-	time      string
+	timeStamp int64
 }
 
 var state State

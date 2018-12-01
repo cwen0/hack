@@ -46,6 +46,10 @@ func (e *evictLeaderHandler) EvictLeader(w http.ResponseWriter, r *http.Request)
 
 func doEvictLeader(tikvIP, pdAddr string) error {
 	storesInfo, err := getStores(pdAddr)
+	if err!= nil {
+		return err
+	}
+
 	var storeID uint64
 	for _, store := range storesInfo.Stores {
 		if store.Store.Address == tikvIP {
