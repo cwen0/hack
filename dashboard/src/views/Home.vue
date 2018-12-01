@@ -30,7 +30,8 @@
                     kind: "",
                     groups: [],
                     real_groups: [],
-                }
+                },
+                storesInfo: new Map()
             }
         },
         created() {
@@ -39,10 +40,39 @@
         updated() {
         },
         mounted() {
-            this.drawCluster();
+            this.getStoresInfo()
             this.drawMetric();
         },
         methods: {
+            getStoresInfo() {
+                ajax.getStoresInfo().then(result => {
+                    if (result.data == null) {
+                        this.$notify.error({
+                            title: 'ERROR',
+                            message: "fail to get stores info",
+                            duration: 0
+                        })
+                    } else {
+                        var infos = result.data
+                        infos.forEach(item => {
+                            this.storesInfo.set(item.ip, item.leader_count);
+                        })
+                    }
+                    console.log(this.storesInfo);
+                    this.drawCluster()
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
+            },
+
+            genST(tikv, count) {
+                return "tikv:" + tikv + "\nleader:" + count
+            },
+
             drawCluster() {
                 ajax.getClusterInfo().then(result => {
                     if (result.data != null) {
@@ -54,12 +84,12 @@
                         var startAngle = 270;
                         var r = 250;
                         var datas = []
-
+                        console.log(this.storesInfo);
                         this.clusterInfo.tikv.forEach((tikv, index) => {
                             var angle = startAngle + increment * index;
                             var rads = angle * Math.PI / 180;
                             datas.push({
-                                name: "tikv:" + tikv,
+                                name: this.genST(tikv, this.storesInfo.get(tikv)),
                                 x: Math.trunc(600 + r * Math.cos(rads)),
                                 y: Math.trunc(600 + r * Math.sin(rads)),
                             })
@@ -76,14 +106,14 @@
                                 this.clusterInfo.tikv.forEach((tikv, index) => {
                                     for (var i = 0; i < index; i++) {
                                         links.push({
-                                            source: "tikv:" + tikv,
-                                            target: "tikv:" + this.clusterInfo.tikv[i],
+                                            source: this.genST(tikv, this.storesInfo.get(tikv)),
+                                            target: this.genST(this.clusterInfo.tikv[i], this.storesInfo.get(this.clusterInfo.tikv[i])),
                                         })
                                     }
                                     for (var i = index + 1; i < this.clusterInfo.tikv.length; i++) {
                                         links.push({
-                                            source: "tikv:" + tikv,
-                                            target: "tikv:" + this.clusterInfo.tikv[i],
+                                            source: this.genST(tikv, this.storesInfo.get(tikv)),
+                                            target: this.genST(this.clusterInfo.tikv[i], this.storesInfo.get(this.clusterInfo.tikv[i])),
                                         })
                                     }
                                 })
@@ -92,17 +122,18 @@
                                     case "full":
                                         this.partition.real_groups.forEach(item => {
                                             item.forEach((h, index) => {
+                                                console.log(this.storesInfo.get(h))
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + h,
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(h, this.storesInfo.get(h)),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + h,
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(h, this.storesInfo.get(h)),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -119,15 +150,15 @@
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -141,15 +172,15 @@
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -164,15 +195,15 @@
                                                     item = item.concat(this.partition.real_groups[1])
                                                     for (var i = 0; i < index; i++) {
                                                         links.push({
-                                                            source: "tikv:" + itemt[index],
-                                                            target: "tikv:" + item[i],
+                                                            source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                            target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                             symbolSize: [3, 15],
                                                         })
                                                     }
                                                     for (var i = index + 1; i < item.length; i++) {
                                                         links.push({
-                                                            source: "tikv:" + itemt[index],
-                                                            target: "tikv:" + item[i],
+                                                            source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                            target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                             symbolSize: [3, 15],
                                                         })
                                                     }
@@ -182,7 +213,8 @@
                                         } else {
                                             this.$notify.error({
                                                 title: 'Error',
-                                                message: "partition is not supported !!"
+                                                message: "partition is not supported !!",
+                                                duration: 0
                                             })
                                         }
                                         break;
@@ -197,15 +229,15 @@
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -219,15 +251,15 @@
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
                                                 for (var i = index + 1; i < item.length; i++) {
                                                     links.push({
-                                                        source: "tikv:" + itemt[index],
-                                                        target: "tikv:" + item[i],
+                                                        source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -241,15 +273,15 @@
                                                     item = item.concat(this.partition.real_groups[1])
                                                     for (var i = 0; i < index; i++) {
                                                         links.push({
-                                                            source: "tikv:" + itemt[index],
-                                                            target: "tikv:" + item[i],
+                                                            source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                            target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                             symbolSize: [3, 15],
                                                         })
                                                     }
                                                     for (var i = index + 1; i < item.length; i++) {
                                                         links.push({
-                                                            source: "tikv:" + itemt[index],
-                                                            target: "tikv:" + item[i],
+                                                            source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
+                                                            target: this.genST(item[i], this.storesInfo.get(item[i])),
                                                             symbolSize: [3, 15],
                                                         })
                                                     }
@@ -259,14 +291,16 @@
                                         } else {
                                             this.$notify.error({
                                                 title: 'Error',
-                                                message: "partition is not supported !!"
+                                                message: "partition is not supported !!",
+                                                duration: 0
                                             })
                                         }
                                         break;
                                     default:
                                         this.$notify.error({
                                             title: 'Error',
-                                            message: "partition is not supported !!"
+                                            message: "partition is not supported !!",
+                                            duration: 0
                                         })
                                 }
                             }
@@ -283,7 +317,7 @@
                                         type: 'graph',
                                         layout: 'none',
                                         symbolSize: 50,
-                                        roam: true,
+                                        // roam: true,
                                         label: {
                                             normal: {
                                                 show: true
@@ -316,19 +350,22 @@
                         }).catch(resp => {
                             this.$notify.error({
                                 title: 'Error',
-                                message: resp.message
+                                message: resp.message,
+                                duration: 0
                             })
                         })
                     } else {
                         this.$notify.error({
                             title: 'Error',
-                            message: "cluster info is empty"
+                            message: "cluster info is empty",
+                            duration: 0
                         })
                     }
                 }).catch(resp => {
                     this.$notify.error({
                         title: 'Error',
-                        message: resp.message
+                        message: resp.message,
+                        duration: 0
                     })
                 })
             },
@@ -418,14 +455,12 @@
             },
 
             drawMetric() {
-                console.log("test");
                 const end = new Date();
                 const start = new Date();
                 start.setTime(start.getTime() - 3600 * 1000 * 24);
                 var startTimestamp = start.getTime() / 1000
                 var endTimestamp = end.getTime() / 1000
                 var option = this.drawData("Duration", "tidb_server_handle_query_duration_seconds_bucket", startTimestamp, endTimestamp, "metricChart")
-                console.log("test");
             }
         }
     }

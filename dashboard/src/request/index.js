@@ -13,6 +13,15 @@ Mock.mock(`${Proxy}/clusterInfo`, 'get', {
     "tikv": ["10.0.0.3", "10.0.0.4", "10.0.0.5", "10.0.0.6", "10.0.0.7"]
 })
 
+Mock.mock(`${Proxy}/store/leaders`, 'get', 4)
+Mock.mock(`${Proxy}/stores`, 'get', [
+    {"ip": "10.0.0.3", "leader_count": 3},
+    {"ip": "10.0.0.4", "leader_count": 4},
+    {"ip": "10.0.0.5", "leader_count": 5},
+    {"ip": "10.0.0.6", "leader_count": 6},
+    {"ip": "10.0.0.7", "leader_count": 7},
+])
+
 Mock.mock(`${Proxy}/partition`, 'get', {
     "kind": "full",
     "groups": [["10.0.0.3", "10.0.0.4", "10.0.0.5"], ["10.0.0.6", "10.0.0.7"]],
@@ -32,6 +41,14 @@ class Ajax {
 
     getPartitionInfo() {
         return axios.get(`${Proxy}/partition`)
+    }
+
+    getStoreLeaderCount(ip) {
+        return axios.get(`${Proxy}/store/leaders?ip=${ip}`)
+    }
+
+    getStoresInfo() {
+        return axios.get(`${Proxy}/stores`)
     }
 
     getDuration(metric, start, end) {
