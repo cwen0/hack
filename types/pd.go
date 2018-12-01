@@ -43,7 +43,6 @@ type StoreStatus struct {
 
 	StartTS         time.Time         `json:"start_ts"`
 	LastHeartbeatTS time.Time         `json:"last_heartbeat_ts"`
-	Uptime          *Duration `json:"uptime"`
 }
 
 // StoreInfo is a single store info returned from PD RESTful interface
