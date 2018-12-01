@@ -52,6 +52,8 @@ func (p *partitionHandler) CleanNetworkPartition(w http.ResponseWriter, r *http.
 		TimeStamp: time.Now().Unix(),
 	})
 
+	partition = types.Partition{}
+
 	p.rd.JSON(w, http.StatusOK, nil)
 }
 
