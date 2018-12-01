@@ -30,7 +30,7 @@ func (t *testPartitionConfig) TestFullPartitionConfig(c *C) {
 		Hosts: []string{"10.0.0.5"},
 	})
 
-	cfg1 := fullPartition(node, groups1)
+	cfg1, realGroups1 := fullPartition(node, groups1)
 	expectCfg1 := make(map[string]*types.NetworkConfig)
 	expectCfg1["10.0.0.3"] = &types.NetworkConfig{
 		Ingress: []string{"10.0.0.3", "10.0.0.4", "10.0.0.1", "10.0.0.2"},
@@ -44,7 +44,9 @@ func (t *testPartitionConfig) TestFullPartitionConfig(c *C) {
 		Ingress: []string{"10.0.0.5", "10.0.0.1", "10.0.0.2"},
 		Egress:  []string{"10.0.0.5", "10.0.0.1", "10.0.0.2"},
 	}
+
 	c.Assert(cfg1, DeepEquals, expectCfg1)
+	c.Assert(realGroups1, DeepEquals, groups1)
 
 	var groups2 []types.Group
 	groups2 = append(groups2, types.Group{
@@ -54,7 +56,7 @@ func (t *testPartitionConfig) TestFullPartitionConfig(c *C) {
 		Hosts: []string{"10.0.0.5"},
 	})
 
-	cfg2 := fullPartition(node, groups2)
+	cfg2, realGroups2 := fullPartition(node, groups2)
 
 	expectCfg2 := make(map[string]*types.NetworkConfig)
 	expectCfg2["10.0.0.1"] = &types.NetworkConfig{
@@ -74,6 +76,7 @@ func (t *testPartitionConfig) TestFullPartitionConfig(c *C) {
 		Egress:  []string{"10.0.0.5", "10.0.0.2"},
 	}
 	c.Assert(cfg2, DeepEquals, expectCfg2)
+	c.Assert(realGroups2, DeepEquals, groups2)
 }
 
 func (t *testPartitionConfig) TestPartialPartitionConfig(c *C) {
@@ -90,7 +93,7 @@ func (t *testPartitionConfig) TestPartialPartitionConfig(c *C) {
 		Hosts: []string{"10.0.0.5"},
 	}
 
-	cfg1 := partialPartion(node, group1, group2)
+	cfg1, realGroups1 := partialPartition(node, group1, group2)
 	expectCfg1 := make(map[string]*types.NetworkConfig)
 	expectCfg1["10.0.0.3"] = &types.NetworkConfig{
 		Ingress: []string{"10.0.0.3", "10.0.0.1", "10.0.0.2", "10.0.0.4"},
@@ -101,6 +104,12 @@ func (t *testPartitionConfig) TestPartialPartitionConfig(c *C) {
 		Egress:  []string{"10.0.0.5", "10.0.0.1", "10.0.0.2", "10.0.0.4"},
 	}
 	c.Assert(cfg1, DeepEquals, expectCfg1)
+
+	var expectRealGroups []types.Group
+	expectRealGroups = append(expectRealGroups, types.Group{Hosts: []string{"10.0.0.3"}})
+	expectRealGroups = append(expectRealGroups, types.Group{Hosts: []string{"10.0.0.5"}})
+	expectRealGroups = append(expectRealGroups, types.Group{Hosts: []string{"10.0.0.4"}})
+	c.Assert(realGroups1, DeepEquals, expectRealGroups)
 }
 
 func (t *testPartitionConfig) TestSimplexPartitionConfig(c *C) {
@@ -117,7 +126,7 @@ func (t *testPartitionConfig) TestSimplexPartitionConfig(c *C) {
 		Hosts: []string{"10.0.0.5"},
 	}
 
-	cfg1 := simplexPartition(node, group1, group2)
+	cfg1, realGroups1 := simplexPartition(node, group1, group2)
 	expectCfg1 := make(map[string]*types.NetworkConfig)
 	expectCfg1["10.0.0.3"] = &types.NetworkConfig{
 		Ingress: []string{"10.0.0.3", "10.0.0.4", "10.0.0.1", "10.0.0.2"},
@@ -132,4 +141,9 @@ func (t *testPartitionConfig) TestSimplexPartitionConfig(c *C) {
 		Egress:  []string{"10.0.0.5", "10.0.0.1", "10.0.0.2"},
 	}
 	c.Assert(cfg1, DeepEquals, expectCfg1)
+
+	var expectRealGroups []types.Group
+	expectRealGroups = append(expectRealGroups, types.Group{Hosts: []string{"10.0.0.3", "10.0.0.4"}})
+	expectRealGroups = append(expectRealGroups, types.Group{Hosts: []string{"10.0.0.5"}})
+	c.Assert(realGroups1, DeepEquals, expectRealGroups)
 }
