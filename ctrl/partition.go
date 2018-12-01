@@ -32,9 +32,13 @@ func newPartitionHandler(c *Manager, rd *render.Render) *partitionHandler {
 }
 
 func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http.Request) {
-	kind := r.URL.Query()["kind"][0]
+	kind := r.URL.Query()["kind"]
+	if len(kind) == 0 {
+		p.rd.JSON(w, http.StatusBadRequest, "miss parameter ip")
+		return
+	}
 	partition := types.Partition{
-		Kind: types.PartitionKind(kind),
+		Kind: types.PartitionKind(kind[0]),
 	}
 	topology, err := getTopologyInfo(p.c.pdAddr)
 	if err != nil {
@@ -78,7 +82,7 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 
 	logs.items = append(logs.items, Log{
 		operation: OperationNetworkPartition,
-		parameter: kind,
+		parameter: kind[0],
 		timeStamp: time.Now().Unix(),
 	})
 
