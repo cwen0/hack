@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ngaut/log"
 	"github.com/juju/errors"
 	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/types"
@@ -79,6 +80,7 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 		if err != nil {
 			return err
 		}
+		log.Debugf("leader count %d", storeInfo.Status.LeaderCount)
 		if storeInfo.Status.LeaderCount == 0 {
 			break
 		}
