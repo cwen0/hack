@@ -69,9 +69,9 @@ func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Reques
 	}
 
 	logs.Items = append(logs.Items, Log{
-		operation: OperationFailpoint,
-		parameter: fpType[0],
-		timeStamp: time.Now().Unix(),
+		Operation: OperationFailpoint,
+		Parameter: fpType[0],
+		TimeStamp: time.Now().Unix(),
 	})
 
 	f.rd.JSON(w, http.StatusOK, nil)

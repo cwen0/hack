@@ -34,9 +34,9 @@ type Logs struct {
 
 // Log is log
 type Log struct {
-	operation string
-	parameter string
-	timeStamp int64
+	Operation string
+	Parameter string
+	TimeStamp int64
 }
 
 var state State

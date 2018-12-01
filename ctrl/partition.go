@@ -46,6 +46,12 @@ func (p *partitionHandler) CleanNetworkPartition(w http.ResponseWriter, r *http.
 		}
 	}
 
+	logs.Items = append(logs.Items, Log{
+		Operation: OperationNetworkPartition,
+		Parameter: "clean",
+		TimeStamp: time.Now().Unix(),
+	})
+
 	p.rd.JSON(w, http.StatusOK, nil)
 }
 
@@ -99,9 +105,9 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 	partition = localPartition
 
 	logs.Items = append(logs.Items, Log{
-		operation: OperationNetworkPartition,
-		parameter: kind[0],
-		timeStamp: time.Now().Unix(),
+		Operation: OperationNetworkPartition,
+		Parameter: kind[0],
+		TimeStamp: time.Now().Unix(),
 	})
 
 	log.Debugf("logs %+v", logs)
