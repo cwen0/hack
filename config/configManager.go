@@ -85,7 +85,7 @@ func (c *Manager) ListFailpointCfg() map[string]string {
 func (c *Manager) CleanFailpointCfg() {
 	c.Lock()
 	defer c.Unlock()
-	c.FailpointCfg = nil
+	c.FailpointCfg = make(map[string]string)
 }
 
 // SetPartitionCfg sets network config
