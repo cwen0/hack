@@ -1,8 +1,11 @@
 package main
 
 import (
-	"github.com/unrolled/render"
+	"fmt"
 	"net/http"
+
+	"github.com/zhouqiang-cl/hack/utils"
+	"github.com/unrolled/render"
 )
 
 type storeHandler struct {
@@ -31,7 +34,12 @@ func (s *storeHandler) GetStores(w http.ResponseWriter, r *http.Request) {
 	}
 	leaderCnt := 0
 	for _, store := range storesInfo.Stores {
-		if store.Store.Address == tikvIP[0] {
+		storeIP, ok := utils.Resolve(store.Store.Address)
+		if !ok {
+			s.rd.JSON(w, http.StatusInternalServerError, fmt.Sprintf("can not resolve %s", store.Store.Address))
+			return
+		}
+		if storeIP == tikvIP[0] {
 			leaderCnt = store.Status.LeaderCount
 		}
 	}
