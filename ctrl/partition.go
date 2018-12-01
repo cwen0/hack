@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ngaut/log"
 	"math/rand"
 	"time"
 
@@ -32,6 +33,7 @@ func (n *networkCtl) start(kind types.PartitionKind) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
+	log.Infof("partition info: %+v", partition)
 	// first empty
 	for host := range configs {
 		err := emptyPartition(host)
