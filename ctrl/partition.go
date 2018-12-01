@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/juju/errors"
+	"github.com/ngaut/log"
+	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/network"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
-	"github.com/ngaut/log"
-	"github.com/unrolled/render"
 )
 
 func init() {
@@ -36,7 +36,13 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 	partition := &types.Partition{
 		Kind: types.PartitionKind(kind),
 	}
-	configs, err := network.GetProxyPartitionConfig(getToplogic(), partition)
+	topology, err := getTopologyInfo(p.c.pdAddr)
+	if err != nil {
+		p.rd.JSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	
+	configs, err := network.GetProxyPartitionConfig(topology, partition)
 	for name, cfg := range configs {
 		log.Debugf("%s config is %+v", name, cfg)
 	}
@@ -68,6 +74,11 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 		partition: *partition,
 	}
 
+	logs.items = append(logs.items, Log{
+		operation: OperationNetworkPartition,
+		parameter: kind,
+		timeStamp: time.Now().Unix(),
+	})
 
 	p.rd.JSON(w, http.StatusOK, nil)
 }
