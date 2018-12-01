@@ -176,13 +176,13 @@ func doFailpoint(kv string, path string, rule string) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
-	url := fmt.Sprintf("http://%s:10008/operation/failpoint/add", kv)
+	url := fmt.Sprintf("http://%s:10008/config/failpoint/add", kv)
 	_, err = utils.DoPost(url, data)
 	return errors.Trace(err)
 }
 
 func emptyFailpoints(kv string) error {
-	url := fmt.Sprintf("http://%s:10008/operation/failpoint/clean", kv)
+	url := fmt.Sprintf("http://%s:10008/config/failpoint/clean", kv)
 	_, err := utils.DoPost(url, []byte{})
 	return errors.Trace(err)
 }
