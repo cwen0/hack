@@ -14,7 +14,7 @@ import (
 var (
 	cmd         string
 	param       string
-	managerAddr = "127.0.0.1:10009"
+	managerAddr = "172.16.30.12:10009"
 )
 
 func init() {
