@@ -45,6 +45,7 @@ func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Reques
 		err := doRandomFailpoint(f.c.pdAddr)
 		log.Debugf("do random failpoint")
 		if err != nil {
+			log.Debugf("do random failpoint failed")
 			f.rd.JSON(w, http.StatusInternalServerError, err.Error())
 			return
 		}
