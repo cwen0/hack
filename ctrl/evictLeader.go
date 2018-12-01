@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/juju/errors"
-	"github.com/ngaut/log"
 	"github.com/unrolled/render"
 	"github.com/zhouqiang-cl/hack/types"
 	"github.com/zhouqiang-cl/hack/utils"
@@ -74,18 +72,6 @@ func doEvictLeader(tikvIP, pdAddr string) error {
 	_, err = utils.DoPost(apiURL, data)
 	if err != nil {
 		return err
-	}
-
-	for {
-		storeInfo, err := getStore(storeID, pdAddr)
-		if err != nil {
-			return err
-		}
-		time.Sleep(3 * time.Second)
-		log.Debugf("leader count %d", storeInfo.Status.LeaderCount)
-		if storeInfo.Status.LeaderCount == 0 {
-			break
-		}
 	}
 
 	return nil
