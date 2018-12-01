@@ -1,4 +1,4 @@
-package cmdline
+package main
 
 import (
 	"flag"
@@ -41,7 +41,7 @@ func main() {
 			log.Fatalf("evict leader failed %+v", err)
 		}
 	case "topology":
-		url := fmt.Sprintf("http://%s/topology", managerAddr, param)
+		url := fmt.Sprintf("http://%s/topology", managerAddr)
 		_, err := utils.DoGet(url)
 		if err != nil {
 			log.Fatalf("get topology failed %+v", err)
