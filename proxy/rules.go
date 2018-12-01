@@ -41,7 +41,6 @@ func stringToRule(ruleStr string) *Rule {
 				log.Errorf("config pct failed, set to 0")
 				p = 0
 			}
-			log.Debugf("pct is %d", p)
 			rule.Pct = p
 		} else {
 			arr := strings.SplitN(item, "(", 2)

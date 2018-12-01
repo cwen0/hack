@@ -71,12 +71,6 @@ func (p *ProxyHandler) handler(srv interface{}, serverStream grpc.ServerStream) 
 		return err
 	}
 
-	pe, ok := peer.FromContext(serverStream.Context())
-	if !ok {
-		log.Error("get peer failed")
-	}
-	log.Debugf("perr addr: %s", pe.Addr.String())
-
 	s2cErrChan := p.forwardServerToClient(serverStream, clientStream)
 	c2sErrChan := p.forwardClientToServer(clientStream, serverStream)
 
@@ -146,8 +140,6 @@ func (p *ProxyHandler) handleInRequest(src grpc.ServerStream, dst grpc.ClientStr
 
 	cfg, ok := p.cfgManager.GetPartitionCfg()
 	if ok && len(cfg.Ingress) > 0 {
-		log.Infof("start to filter ingress request")
-		log.Infof("ingress allow hosts: %v", cfg.Ingress)
 		if err := p.processIngressNetwork(src, dst, cfg); err != nil {
 			return err
 		}
@@ -165,8 +157,6 @@ func (p *ProxyHandler) handleInRequest(src grpc.ServerStream, dst grpc.ClientStr
 func (p *ProxyHandler) handleOutRequest(index int, src grpc.ClientStream, dst grpc.ServerStream) error {
 	cfg, ok := p.cfgManager.GetPartitionCfg()
 	if ok && len(cfg.Egress) > 0 {
-		log.Infof("start to filter egress request")
-		log.Infof("egress allow hosts: %v", cfg.Egress)
 		if err := p.processEgressNetwork(index, src, dst, cfg); err != nil {
 			return err
 		}
@@ -236,7 +226,7 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 			if err != nil {
 				return errors.Trace(err)
 			}
-			log.Infof("sleep %d ms", millisecond)
+			log.Infof("sleep %d ms for delay", millisecond)
 			time.Sleep(time.Duration(millisecond) * time.Millisecond)
 		case "timeout":
 			log.Infof("sleep 10 minutes for timeout")
@@ -255,9 +245,8 @@ func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.Cli
 	pe, ok := peer.FromContext(src.Context())
 	if !ok {
 		log.Error("get peer failed")
+		return errors.New("get peer failed")
 	}
-
-	log.Infof("Ingress perr addr: %s", pe.Addr.String())
 
 	ingressIP, err := utils.GetIP(pe.Addr.String())
 	if err != nil {
@@ -277,9 +266,9 @@ func (p *ProxyHandler) processEgressNetwork(index int, src grpc.ClientStream, ds
 	pe, ok := peer.FromContext(dst.Context())
 	if !ok {
 		log.Error("get peer failed")
+		return errors.New("get peer failed")
 	}
 
-	log.Infof("Egress perr addr: %s", pe.Addr.String())
 	egressIP, err := utils.GetIP(pe.Addr.String())
 	if err != nil {
 		return err
