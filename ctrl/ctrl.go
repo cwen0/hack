@@ -29,6 +29,7 @@ type Ctrl struct {
 	fpCtrl *failpointCtl
 	npCtrl *networkCtl
 	elCtrl *evictLeaderCtl
+	tpCtrl *topology
 }
 
 func newCtrl(toplogic *types.Topological) *Ctrl {
@@ -36,6 +37,7 @@ func newCtrl(toplogic *types.Topological) *Ctrl {
 		fpCtrl: newFailpointCtl(toplogic),
 		npCtrl: newNetworkCtl(toplogic),
 		elCtrl: newEvictLeaderCtl(PDADDR, TIMEOUT),
+		tpCtrl: newTopplogyCtl(PDADDR,TIMEOUT),
 	}
 }
 
@@ -59,6 +61,11 @@ func main() {
 		err := ctrl.elCtrl.start(param)
 		if err != nil {
 			log.Fatalf("evict leader failed %+v", err)
+		}
+	case "topology":
+		err := ctrl.elCtrl.start(param)
+		if err != nil {
+			log.Fatalf("topology failed %+v", err)
 		}
 	}
 }
