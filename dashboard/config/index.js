@@ -29,7 +29,7 @@ module.exports = {
         assetsPublicPath: '/',
         proxyTable: {
             "/api": {
-                target: "http://172.16.30.11:30367"
+                target: "http://172.16.30.11:39227"
             },
             "/manager": {
                 target: "http://172.16.30.11:23333"
