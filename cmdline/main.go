@@ -23,25 +23,25 @@ func main() {
 
 	switch cmd {
 	case "failpoint":
-		url := fmt.Sprintf("http://%s/failpoint?type=%s", managerAddr, param)
+		url := fmt.Sprintf("http://%s/operation/failpoint?type=%s", managerAddr, param)
 		_, err := utils.DoPost(url, nil)
 		if err != nil {
 			log.Fatal("failpoint failed %+v", err)
 		}
 	case "network":
-		url := fmt.Sprintf("http://%s/partition?kind=%s", managerAddr, param)
+		url := fmt.Sprintf("http://%s/operation/partition?kind=%s", managerAddr, param)
 		_, err := utils.DoPost(url, nil)
 		if err != nil {
 			log.Fatalf("network failed %+v", err)
 		}
 	case "evict_leader":
-		url := fmt.Sprintf("http://%s/evictleader?ip=%s", managerAddr, param)
+		url := fmt.Sprintf("http://%s/operation/evictleader?ip=%s", managerAddr, param)
 		_, err := utils.DoPost(url, nil)
 		if err != nil {
 			log.Fatalf("evict leader failed %+v", err)
 		}
 	case "topology":
-		url := fmt.Sprintf("http://%s/topology", managerAddr)
+		url := fmt.Sprintf("http://%s/operation/topology", managerAddr)
 		_, err := utils.DoGet(url)
 		if err != nil {
 			log.Fatalf("get topology failed %+v", err)
