@@ -138,6 +138,8 @@ func (p *ProxyHandler) handleInRequest(src grpc.ServerStream, dst grpc.ClientStr
 
 	cfg, ok := p.cfgManager.GetPartitionCfg()
 	if ok && len(cfg.Ingress) > 0 {
+		log.Infof("start to filter ingress request")
+		log.Infof("ingress allow hosts: %v", cfg.Ingress)
 		if err := p.processIngressNetwork(src, dst, cfg); err != nil {
 			return err
 		}
@@ -155,6 +157,8 @@ func (p *ProxyHandler) handleInRequest(src grpc.ServerStream, dst grpc.ClientStr
 func (p *ProxyHandler) handleOutRequest(index int, src grpc.ClientStream, dst grpc.ServerStream) error {
 	cfg, ok := p.cfgManager.GetPartitionCfg()
 	if ok && len(cfg.Egress) > 0 {
+		log.Infof("start to filter egress request")
+		log.Infof("egress allow hosts: %v", cfg.Egress)
 		if err := p.processEgressNetwork(index, src, dst, cfg); err != nil {
 			return err
 		}
@@ -256,6 +260,8 @@ func (p *ProxyHandler) processIngressNetwork(src grpc.ServerStream, dst grpc.Cli
 		return p.processNormal(src, dst)
 	}
 
+	log.Infof("drop ingress request: %s", pe.Addr.String())
+
 	return nil
 }
 
@@ -274,5 +280,8 @@ func (p *ProxyHandler) processEgressNetwork(index int, src grpc.ClientStream, ds
 	if utils.MatchInArray(cfg.Egress, egressIP) {
 		return p.processOutNormal(index, src, dst)
 	}
+
+	log.Infof("drop egress request: %s", pe.Addr.String())
+
 	return nil
 }
