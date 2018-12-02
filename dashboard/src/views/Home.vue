@@ -476,10 +476,10 @@
                 result.data.data.result.forEach((e, index) => {
                     var value = []
                     e.values.forEach((e, index) =>{
-                        value.push(e[1])
+                        value.push(parseFloat(e[1]).toFixed(2))
                     })
                     var serie = {
-                            name: title,
+                            name: e.metric.result,
                             type: 'line',
                             data: value,
                             markPoint: {
@@ -522,7 +522,7 @@
                     yAxis: {
                         type: 'value',
                         axisLabel: {
-                            formatter: '{value} s'
+                            formatter: '{value} qps'
                         }
                     },
                     series: series
