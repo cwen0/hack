@@ -160,7 +160,7 @@ func getRandomFailpointPath() []string {
 }
 
 func doFailpoints(kv string, pathes []string) error {
-	rule := "pct(5)->delay(100)|pct(1)->timeout()"
+	rule := "pct(1)->delay(5)|pct(1)->timeout()"
 	for _, path := range pathes {
 		err := doFailpoint(kv, path, rule)
 		if err != nil {

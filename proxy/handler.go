@@ -230,7 +230,7 @@ func (p *ProxyHandler) processWithRule(src grpc.ServerStream, dst grpc.ClientStr
 			time.Sleep(time.Duration(millisecond) * time.Millisecond)
 		case "timeout":
 			log.Infof("sleep 10 minutes for timeout")
-			time.Sleep(10 * time.Minute)
+			time.Sleep(10 * time.Second)
 		}
 	}
 
