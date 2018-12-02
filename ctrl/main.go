@@ -14,8 +14,8 @@ var (
 
 func init() {
 	flag.StringVar(&addr, "addr", "172.16.30.12:10009", "operation manager address")
-	flag.StringVar(&pdAddr, "pd-addr", "", "pd address")
-	flag.StringVar(&tidbAddr, "tidb-addr", "10.128.29.197", "pd address")
+	flag.StringVar(&pdAddr, "pd-addr", "10.128.19.63:2379", "pd address")
+	flag.StringVar(&tidbAddr, "tidb-addr", "10.128.26.206", "pd address")
 }
 
 func main() {
