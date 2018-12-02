@@ -452,6 +452,7 @@
             },
             getQPSOption(title, result) {
                 var time = []
+                var indexTime = []
                 result.data.data.result[0].values.forEach((e, index) => {
                         var date = new Date(e[0] * 1000);
                         // Hours part from the timestamp
@@ -462,6 +463,7 @@
                         var seconds = "0" + date.getSeconds();
                         var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
                         time.push(formattedTime)
+                        indexTime.push(parseInt(e[0]/60)*60)
                 })
                 console.log(time)
                 var metric = []
@@ -470,22 +472,43 @@
                     metric.push(e.metric.result)
                 })
 
+
                 console.log(metric)
                 var series = []
 
                 result.data.data.result.forEach((e, index) => {
                     var value = []
+                    var points = []
                     e.values.forEach((e, index) =>{
                         value.push(parseFloat(e[1]).toFixed(2))
                     })
+                    //ajax.getEvent().then(event => {
+                    //console.log("event..")
+                    //event.data.Items.forEach((e, index) => {
+                    //    var t = parseInt(e.TimeStamp/60)*60
+                    //    for (var i in indexTime) {
+                    //        if (t == indexTime[i]) {
+                    //            console.log("yyy")
+                                //var point = {
+                     //              value:e.Operation + "_" + e.Parameter + "_" + time[i],
+                      //              xAxis: time[i],
+                       //             yAxis: value[i]
+                                //}
+                           //     var point = {value: "partition", xAxis: time[20], yAxis: 0}
+                         //       points.push(point)
+                             //   break
+                           // }
+                     //   }
+                    //})
+                    //}).catch(resp => {
+                     //   console.log("error")
+                    //})
                     var serie = {
                             name: e.metric.result,
                             type: 'line',
                             data: value,
                             markPoint: {
-                                data: [
-                                    {value: "partition", xAxis: time[20], yAxis: value[20]}
-                                ]
+                                data: points,
                             }
                         }
                     series.push(serie)
@@ -530,8 +553,27 @@
                 return option
 
             },
-            getOption(title, time, value) {
-                var option = {
+            getOption(title, time, value, indexTime, myChart) {
+                ajax.getEvent().then(event => {
+                    var points = []
+                    console.log("event..")
+                    event.data.Items.forEach((e, index) => {
+                    var t = parseInt(e.TimeStamp/60)*60
+                        for (var i in indexTime) {
+                            if (t == indexTime[i]) {
+                                console.log("yyy")
+                                var point = {
+                                   value:e.Operation + "_" + e.Parameter + "_" + time[i],
+                                    xAxis: time[i],
+                                    yAxis: value[i]
+                                }
+                                //var point = {value: "partition", xAxis: time[20], yAxis: 0}
+                                points.push(point)
+                                break
+                            }
+                        }
+                    })
+                    var option = {
                     title: {
                         text: title,
                     },
@@ -570,19 +612,13 @@
                             type: 'line',
                             data: value,
                             markPoint: {
-                                data: [
-                                    {value: "partition", xAxis: time[20], yAxis: value[20]}
-                                ]
-                            },
-                            markLine: {
-                                data: [
-                                    {type: 'average', name: '平均值'}
-                                ]
+                                data: points
                             }
                         }
                     ]
-                };
-                return option
+                    };
+                    myChart.setOption(option)
+                })
             },
 
             drawData(title, metric, timeFrom, timeTo, id) {
@@ -590,6 +626,7 @@
                 ajax.getDuration(metric, timeFrom, timeTo).then(result => {
                     var time = []
                     var value = []
+                    var indexTime = []
                     // console.log(result.data.data.result[0])
                     result.data.data.result[0].values.forEach((e, index) => {
                         var date = new Date(e[0] * 1000);
@@ -601,10 +638,10 @@
                         var seconds = "0" + date.getSeconds();
                         var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
                         time.push(formattedTime)
+                        indexTime.push(parseInt(e[0]/60)*60)
                         value.push(parseFloat(e[1]).toFixed(4))
                     })
-                    var option = this.getOption(title, time, value)
-                    myChart.setOption(option)
+                    var option = this.getOption(title, time, value,indexTime,myChart)
                 }).catch(resp => {
                     this.$notify.error({
                         title: 'ERROR',

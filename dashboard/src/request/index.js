@@ -105,6 +105,10 @@ class Ajax {
         return axios.get(`${GrafanaProxy}?query=sum(rate(tidb_server_query_total%5B1m%5D))%20by%20(result)&start=${start}&end=${end}&step=30`)
     }
 
+    getEvent() {
+        return axios.get(`${Proxy}/log`)
+    }
+
     setevictTikvLeader(ip) {
         return axios.post(`${proxy}/evictleadere/${ip}`)
     }
