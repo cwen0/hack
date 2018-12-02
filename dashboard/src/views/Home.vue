@@ -783,12 +783,16 @@
 
 <style scoped>
     .content {
-        width: 95%;
+        /*content: 100%;*/
+        /*display: flex;*/
+        /*flex: row wrap;*/
+        width: 100%;
     }
+
     .clusterChart {
         padding-left: 4em;
-        width: 80em;
-        height: 60em;
+        width: 100%;
+        height: 60em
     }
 
     .monitor {
@@ -797,12 +801,13 @@
     }
 
     .metrics {
-        width: 120em;
+        width: 100%;
         height: 50em;
     }
 
     .forms {
         padding-top: 3em;
+        padding-right: 4em;
     }
 
     .button-n {
