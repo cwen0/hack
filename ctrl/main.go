@@ -13,7 +13,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&addr, "addr", "127.0.0.1:10009", "operation manager address")
+	flag.StringVar(&addr, "addr", "172.16.30.12:10009", "operation manager address")
 	flag.StringVar(&pdAddr, "pd-addr", "", "pd address")
 	flag.StringVar(&tidbAddr, "tidb-addr", "10.128.29.197", "pd address")
 }

@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+	"io"
+	"io/ioutil"
 
 	"github.com/juju/errors"
 	"github.com/ngaut/log"
@@ -31,12 +33,13 @@ func newFailpointHandler(c *Manager, rd *render.Render) *failpointHandler {
 }
 
 func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Request) {
-	fpType := r.URL.Query()["type"]
-	if len(fpType) == 0 {
-		f.rd.JSON(w, http.StatusBadRequest, "miss parameter ip")
+	fp := &types.FailpointFe{}
+	err := readJSON(r.Body, fp)
+	if err != nil {
+		f.rd.JSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	switch fpType[0] {
+	switch fp.Type {
 	case "random":
 		log.Debugf("clean failpoint")
 		cleanFailpoint(f.c.pdAddr)
@@ -70,7 +73,7 @@ func (f *failpointHandler) CreateFailpoint(w http.ResponseWriter, r *http.Reques
 
 	logs.Items = append(logs.Items, Log{
 		Operation: OperationFailpoint,
-		Parameter: fpType[0],
+		Parameter: fp.Type,
 		TimeStamp: time.Now().Unix(),
 	})
 
@@ -185,4 +188,19 @@ func emptyFailpoints(kv string) error {
 	url := fmt.Sprintf("http://%s:10008/config/failpoint/clean", kv)
 	_, err := utils.DoPost(url, []byte{})
 	return errors.Trace(err)
+}
+
+func readJSON(r io.ReadCloser, data interface{}) error {
+	defer r.Close()
+
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return errors.Trace(err)
+	}
+	err = json.Unmarshal(b, data)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	return nil
 }

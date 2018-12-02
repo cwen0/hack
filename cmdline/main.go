@@ -14,7 +14,7 @@ import (
 var (
 	cmd         string
 	param       string
-	managerAddr = "127.0.0.1:10009"
+	managerAddr = "172.16.30.12:10009"
 )
 
 func init() {
@@ -27,19 +27,33 @@ func main() {
 
 	switch cmd {
 	case "failpoint":
-		url := fmt.Sprintf("http://%s/operation/failpoint?type=%s", managerAddr, param)
-		_, err := utils.DoPost(url, []byte{})
+		fe := &types.FailpointFe{
+			Type:param,
+		}
+		data, err := json.Marshal(fe)
+		if err != nil {
+			log.Fatal("failpoint failed %+v", errors.ErrorStack(err))
+		}
+		url := fmt.Sprintf("http://%s/operation/failpoint", managerAddr)
+		_, err = utils.DoPost(url,data)
 		if err != nil {
 			log.Fatal("failpoint failed %+v", errors.ErrorStack(err))
 		}
 	case "network":
-		url := fmt.Sprintf("http://%s/operation/partition?kind=%s", managerAddr, param)
-		_, err := utils.DoPost(url, []byte{})
+		fe := &types.PartitionFe{
+			PartitionKind:param,
+		}
+		data, err := json.Marshal(fe)
+		if err != nil {
+			log.Fatal("network failed %+v", errors.ErrorStack(err))
+		}
+		url := fmt.Sprintf("http://%s/operation/partition", managerAddr)
+		_, err = utils.DoPost(url, data)
 		if err != nil {
 			log.Fatalf("network failed %+v", errors.ErrorStack(err))
 		}
 	case "evict_leader":
-		url := fmt.Sprintf("http://%s/operation/evictleader?ip=%s", managerAddr, param)
+		url := fmt.Sprintf("http://%s/operation/evictleader/%s", managerAddr, param)
 		_, err := utils.DoPost(url, []byte{})
 		if err != nil {
 			log.Fatalf("evict leader failed %+v", errors.ErrorStack(err))

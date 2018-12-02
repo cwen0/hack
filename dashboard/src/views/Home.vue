@@ -8,6 +8,9 @@
                     <div class="clusterChart" id="clusterChart">
 
                     </div>
+                    <div class="clusterChart" id="drawClusterQPS">
+
+                    </div>
                 </el-col>
                 <el-col :span="10">
                     <!--<div class="grid-content bg-purple"></div>-->
@@ -453,7 +456,86 @@
                     })
                 })
             },
+            getQPSOption(title, result) {
+                var time = []
+                result.data.data.result[0].values.forEach((e, index) => {
+                        var date = new Date(e[0] * 1000);
+                        // Hours part from the timestamp
+                        var hours = date.getHours();
+                        // Minutes part from the timestamp
+                        var minutes = "0" + date.getMinutes();
+                        // Seconds part from the timestamp
+                        var seconds = "0" + date.getSeconds();
+                        var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+                        time.push(formattedTime)
+                })
+                console.log(time)
+                var metric = []
 
+                result.data.data.result.forEach((e, index) => {
+                    metric.push(e.metric.result)
+                })
+
+                console.log(metric)
+                var series = []
+
+                result.data.data.result.forEach((e, index) => {
+                    var value = []
+                    e.values.forEach((e, index) =>{
+                        value.push(parseFloat(e[1]).toFixed(2))
+                    })
+                    var serie = {
+                            name: e.metric.result,
+                            type: 'line',
+                            data: value,
+                            markPoint: {
+                                data: [
+                                    {value: "partition", xAxis: time[20], yAxis: value[20]}
+                                ]
+                            }
+                        }
+                    series.push(serie)
+                })
+                console.log(series)
+
+                var option = {
+                    title: {
+                        text: title,
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: metric
+                    },
+                    toolbox: {
+                        show: true,
+                        feature: {
+                            dataZoom: {
+                                yAxisIndex: 'none'
+                            },
+                            dataView: {readOnly: false},
+                            magicType: {type: ['line', 'bar']},
+                            restore: {},
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: time
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '{value} qps'
+                        }
+                    },
+                    series: series
+                };
+                return option
+
+            },
             getOption(title, time, value) {
                 var option = {
                     title: {
@@ -538,6 +620,21 @@
                 })
             },
 
+            drawQPS(title, metric, timeFrom, timeTo, id) {
+                console.log("draw qps")
+                var myQPSChart = this.$echarts.init(document.getElementById(id));
+                ajax.getQPS(metric, timeFrom, timeTo).then(result => {
+                    var option = this.getQPSOption(title, result)
+                    myQPSChart.setOption(option)
+                }).catch(resp => {
+                    this.$notify.error({
+                        title: 'ERROR',
+                        message: resp.message,
+                        duration: 0
+                    })
+                })
+            },
+
             drawMetric() {
                 const end = new Date();
                 const start = new Date();
@@ -545,6 +642,7 @@
                 var startTimestamp = start.getTime() / 1000
                 var endTimestamp = end.getTime() / 1000
                 var option = this.drawData("Duration", "tidb_server_handle_query_duration_seconds_bucket", startTimestamp, endTimestamp, "metricChart")
+                var qpsOption = this.drawQPS("QPS", "tidb_server_query_total", startTimestamp, endTimestamp, "drawClusterQPS")
             },
 
             submitEvictTiKVLeader() {
