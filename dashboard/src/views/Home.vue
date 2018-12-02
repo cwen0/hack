@@ -569,7 +569,7 @@
                             if (t == indexTime[i]) {
                                 console.log("yyy")
                                 var point = {
-                                   value:e.Operation + "_" + e.Parameter + "_" + time[i],
+                                   value:e.Operation + "_" + e.Parameter + "_" +index,
                                     xAxis: time[i],
                                     yAxis: value[i]
                                 }
