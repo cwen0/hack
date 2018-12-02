@@ -65,7 +65,8 @@ func (p *partitionHandler) CreateNetworkPartition(w http.ResponseWriter, r *http
 		return
 	}
 	localPartition := types.Partition{
-		Kind: types.PartitionKind(fp.PartitionKind),
+		Kind:   types.PartitionKind(fp.PartitionKind),
+		Groups: fp.Groups,
 	}
 	topology, err := getTopologyInfo(p.c.pdAddr)
 	if err != nil {
