@@ -8,9 +8,6 @@
                     <div class="clusterChart" id="clusterChart">
 
                     </div>
-                    <div class="clusterChart" id="drawClusterQPS">
-
-                    </div>
                 </el-col>
                 <el-col :span="10">
                     <!--<div class="grid-content bg-purple"></div>-->
@@ -78,6 +75,9 @@
                 <h1>TiDB Monitor</h1>
                 <br>
                 <div class="metrics" id="metricChart">
+
+                </div>
+                <div class="metrics" id="drawClusterQPS">
 
                 </div>
             </div>
