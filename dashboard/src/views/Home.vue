@@ -8,9 +8,6 @@
                     <div class="clusterChart" id="clusterChart">
 
                     </div>
-                    <div class="clusterChart" id="drawClusterQPS">
-
-                    </div>
                 </el-col>
                 <el-col :span="10">
                     <!--<div class="grid-content bg-purple"></div>-->
@@ -78,6 +75,9 @@
                 <h1>TiDB Monitor</h1>
                 <br>
                 <div class="metrics" id="metricChart">
+
+                </div>
+                <div class="metrics" id="drawClusterQPS">
 
                 </div>
             </div>
@@ -783,12 +783,16 @@
 
 <style scoped>
     .content {
-        width: 95%;
+        /*content: 100%;*/
+        /*display: flex;*/
+        /*flex: row wrap;*/
+        width: 100%;
     }
+
     .clusterChart {
         padding-left: 4em;
-        width: 80em;
-        height: 60em;
+        width: 100%;
+        height: 60em
     }
 
     .monitor {
@@ -797,12 +801,13 @@
     }
 
     .metrics {
-        width: 120em;
+        width: 100%;
         height: 50em;
     }
 
     .forms {
         padding-top: 3em;
+        padding-right: 4em;
     }
 
     .button-n {
