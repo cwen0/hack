@@ -91,7 +91,7 @@
             return {
                 failpoint: '',
                 evictLeadrIP: '',
-                partitionKind: 'full',
+                partitionKind: '',
                 group1: '',
                 group2: '',
                 clusterInfo: {
@@ -117,9 +117,9 @@
             this.drawMetric();
         },
         beforeMount() {
-            // var self = this;
-            // setInterval(this.getStoresInfo, 10000);
-            // setInterval(this.drawMetric, 10000);
+            var self = this;
+            setInterval(this.getStoresInfo, 10000);
+            setInterval(this.drawMetric, 10000);
         },
         methods: {
             getStoresInfo() {
@@ -135,8 +135,8 @@
                         infos.forEach(item => {
                             this.storesInfo.set(item.store.address, item.status.leader_count);
                         })
-                        console.log(infos)
-                        console.log(this.storesInfo)
+                        // console.log(infos)
+                        // console.log(this.storesInfo)
                     }
                     this.drawCluster()
                 }).catch(resp => {
@@ -154,7 +154,7 @@
 
             drawCluster() {
                 ajax.getClusterInfo().then(result => {
-                    console.log(result)
+                    // console.log(result)
                     if (result.data != null) {
                         this.clusterInfo = result.data;
 
@@ -164,6 +164,7 @@
                         var startAngle = 270;
                         var r = 250;
                         var datas = []
+                        this.clusterInfo.tikv.sort();
                         this.clusterInfo.tikv.forEach((tikv, index) => {
                             var angle = startAngle + increment * index;
                             var rads = angle * Math.PI / 180;
@@ -178,6 +179,8 @@
                             if (result.data != null) {
                                 this.partition = result.data
                             }
+
+                            console.log(this.partition);
 
                             var links = [];
                             if (this.partition.real_groups == null || this.partition.real_groups.length <= 1) {
@@ -198,20 +201,22 @@
                             } else {
                                 switch (this.partition.kind) {
                                     case "full":
+                                        // console.log(this.partition.real_groups)
                                         this.partition.real_groups.forEach(item => {
-                                            item.forEach((h, index) => {
+                                            // console.log(item.hosts)
+                                            item.hosts.forEach((h, index) => {
                                                 // console.log(this.storesInfo.get(h))
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
                                                         source: this.genST(h, this.storesInfo.get(h)),
-                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
+                                                        target: this.genST(item.hosts[i], this.storesInfo.get(item.hosts[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
-                                                for (var i = index + 1; i < item.length; i++) {
+                                                for (var i = index + 1; i < item.hosts.length; i++) {
                                                     links.push({
                                                         source: this.genST(h, this.storesInfo.get(h)),
-                                                        target: this.genST(item[i], this.storesInfo.get(item[i])),
+                                                        target: this.genST(item.hosts[i], this.storesInfo.get(item.hosts[i])),
                                                         symbolSize: [3, 15],
                                                     })
                                                 }
@@ -220,11 +225,12 @@
                                         break;
                                     case "partial":
                                         if (this.partition.real_groups.length >= 2) {
-                                            for (var index = 0; index <= this.partition.real_groups[0].length; index++) {
-                                                var itemt = this.partition.real_groups[0];
-                                                var item = this.partition.real_groups[0];
+                                            // console.log(this.partition.real_groups[0].hosts)
+                                            for (var index = 0; index <= this.partition.real_groups[0].hosts.length; index++) {
+                                                var itemt = this.partition.real_groups[0].hosts;
+                                                var item = this.partition.real_groups[0].hosts;
                                                 if (this.partition.real_groups.length > 2) {
-                                                    item = item.concat(this.partition.real_groups[2])
+                                                    item = item.concat(this.partition.real_groups[2].hosts)
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
@@ -242,11 +248,11 @@
                                                 }
 
                                             }
-                                            for (var index = 0; index <= this.partition.real_groups[1].length; index++) {
-                                                var itemt = this.partition.real_groups[1];
-                                                var item = this.partition.real_groups[1];
+                                            for (var index = 0; index <= this.partition.real_groups[1].hosts.length; index++) {
+                                                var itemt = this.partition.real_groups[1].hosts;
+                                                var item = this.partition.real_groups[1].hosts;
                                                 if (this.partition.real_groups.length > 2) {
-                                                    item = item.concat(this.partition.real_groups[2])
+                                                    item = item.concat(this.partition.real_groups[2].hosts)
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
@@ -266,11 +272,11 @@
                                             }
 
                                             if (this.partition.real_groups.length == 3) {
-                                                for (var index = 0; index <= this.partition.real_groups[2].length; index++) {
-                                                    var itemt = this.partition.real_groups[2];
-                                                    var item = this.partition.real_groups[2];
-                                                    item = item.concat(this.partition.real_groups[0])
-                                                    item = item.concat(this.partition.real_groups[1])
+                                                for (var index = 0; index <= this.partition.real_groups[2].hosts.length; index++) {
+                                                    var itemt = this.partition.real_groups[2].hosts;
+                                                    var item = this.partition.real_groups[2].hosts;
+                                                    item = item.concat(this.partition.real_groups[0].hosts)
+                                                    item = item.concat(this.partition.real_groups[1].hosts)
                                                     for (var i = 0; i < index; i++) {
                                                         links.push({
                                                             source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
@@ -298,12 +304,12 @@
                                         break;
                                     case "simplex":
                                         if (this.partition.real_groups.length >= 2) {
-                                            for (var index = 0; index <= this.partition.real_groups[0].length; index++) {
-                                                var itemt = this.partition.real_groups[0];
-                                                var item = this.partition.real_groups[0];
-                                                item = item.concat(this.partition.real_groups[1]);
+                                            for (var index = 0; index <= this.partition.real_groups[0].hosts.length; index++) {
+                                                var itemt = this.partition.real_groups[0].hosts;
+                                                var item = this.partition.real_groups[0].hosts;
+                                                item = item.concat(this.partition.real_groups[1].hosts);
                                                 if (this.partition.real_groups.length > 2) {
-                                                    item = item.concat(this.partition.real_groups[2])
+                                                    item = item.concat(this.partition.real_groups[2].hosts)
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
@@ -321,11 +327,11 @@
                                                 }
 
                                             }
-                                            for (var index = 0; index <= this.partition.real_groups[1].length; index++) {
-                                                var itemt = this.partition.real_groups[1];
-                                                var item = this.partition.real_groups[1];
+                                            for (var index = 0; index <= this.partition.real_groups[1].hosts.length; index++) {
+                                                var itemt = this.partition.real_groups[1].hosts;
+                                                var item = this.partition.real_groups[1].hosts;
                                                 if (this.partition.real_groups.length > 2) {
-                                                    item = item.concat(this.partition.real_groups[2])
+                                                    item = item.concat(this.partition.real_groups[2].hosts)
                                                 }
                                                 for (var i = 0; i < index; i++) {
                                                     links.push({
@@ -344,11 +350,11 @@
 
                                             }
                                             if (this.partition.real_groups.length == 3) {
-                                                for (var index = 0; index <= this.partition.real_groups[2].length; index++) {
-                                                    var itemt = this.partition.real_groups[2];
-                                                    var item = this.partition.real_groups[2];
-                                                    item = item.concat(this.partition.real_groups[0])
-                                                    item = item.concat(this.partition.real_groups[1])
+                                                for (var index = 0; index <= this.partition.real_groups[2].hosts.length; index++) {
+                                                    var itemt = this.partition.real_groups[2].hosts;
+                                                    var item = this.partition.real_groups[2].hosts;
+                                                    item = item.concat(this.partition.real_groups[0].hosts)
+                                                    item = item.concat(this.partition.real_groups[1].hosts)
                                                     for (var i = 0; i < index; i++) {
                                                         links.push({
                                                             source: this.genST(itemt[index], this.storesInfo.get(itemt[index])),
@@ -565,7 +571,8 @@
                             type: 'success',
                             message: 'clean network partition'
                         })
-                    }).then(resp => {
+                        this.getStoresInfo();
+                    }).catch(resp => {
                         this.$notify.error({
                             title: 'ERROR',
                             message: resp.message,
@@ -576,25 +583,32 @@
                 }
 
                 let groups = [];
-                if (this.group1 != null && this.group1.trim() != null) {
+                if (this.group1 !== "" && this.group1.trim() != null) {
                     let gs = this.group1.split(",")
-                    groups.push(gs)
+
+                    groups.push({
+                        "hosts": gs,
+                    })
                 }
 
-                if (this.group2 != null && this.group2.trim() != null) {
+                if (this.group2 !== "" && this.group2.trim() != null) {
                     let gs = this.group2.split(",")
-                    groups.push(gs)
+                    groups.push({
+                        "hosts": gs,
+                    })
                 }
-
-                this.ajax.setNetworkPartition({
-                    "partition_kind": this.partition_kind,
+                console.log(groups)
+                let data = {
+                    "partition_kind": this.partitionKind,
                     "groups": groups,
-                }).then(result => {
+                }
+                ajax.setNetworkPartition(data).then(result => {
                     this.$notify({
                         title: 'Success',
                         type: 'success',
                         message: 'start to inject network partition'
                     })
+                    this.getStoresInfo();
                 }).catch(resp => {
                     this.$notify.error({
                         title: 'ERROR',
@@ -604,14 +618,22 @@
                 })
             },
             submitFailpoint() {
-                this.ajax.setFailpoint({
+                ajax.setFailpoint({
                     "type": this.failpoint,
                 }).then(result => {
-                    this.$notify({
-                        title: 'Success',
-                        type: 'success',
-                        message: 'start to inject failpoint'
-                    })
+                    if (this.failpoint === "clean") {
+                        this.$notify({
+                            title: 'Success',
+                            type: 'success',
+                            message: 'clean failpoint'
+                        })
+                    } else {
+                        this.$notify({
+                            title: 'Success',
+                            type: 'success',
+                            message: 'start to inject ' + this.failpoint + ' failpoint'
+                        })
+                    }
                 }).catch(resp => {
                     this.$notify.error({
                         title: 'ERROR',

@@ -102,19 +102,19 @@ class Ajax {
     }
 
     setevictTikvLeader(ip) {
-        return axios.post(`${proxy}/evictleadere/${ip}`)
+        return axios.post(`${Proxy}/evictleader/${ip}`)
     }
 
     setNetworkPartition(data) {
-        return axios.post(`${proxy}/partition`, data)
+        return axios.post(`${Proxy}/partition`, data)
     }
 
     cleanNetworkPartition() {
-        return axios.post(`${proxy}/partition/clean`)
+        return axios.post(`${Proxy}/partition/clean`, null)
     }
 
     setFailpoint(data) {
-        return axios.post(`${proxy}/failpoint`, data)
+        return axios.post(`${Proxy}/failpoint`, data)
     }
 }
 
